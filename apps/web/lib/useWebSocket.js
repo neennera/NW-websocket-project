@@ -5,18 +5,11 @@ import { useEffect, useRef, useState } from 'react';
  * @param {Object} config - Configuration object
  * @param {string} config.room - Room identifier
  * @param {string} config.username - User's display name
- * @param {string} config.wsUrl - WebSocket server URL (default: ws://localhost:3001/ws)
  * @param {Function} config.onMessage - Callback when any message is received
  * @param {Function} config.onError - Callback when error occurs
  * @returns {Object} WebSocket state and controls
  */
-export function useWebSocket({
-  room,
-  username,
-  wsUrl = 'ws://localhost:3001/ws',
-  onMessage,
-  onError,
-}) {
+export function useWebSocket({ room, username, onMessage, onError }) {
   const [connected, setConnected] = useState(false);
   const [messages, setMessages] = useState([]);
   const [members, setMembers] = useState([]);
@@ -25,19 +18,23 @@ export function useWebSocket({
 
   // Initialize WebSocket connection
   useEffect(() => {
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001/ws';
+    console.log('Connecting to WebSocket:', wsUrl);
+
     if (!room || !username) return;
 
     try {
       const socket = new WebSocket(wsUrl);
       wsRef.current = socket;
 
+      // join websocket
       socket.addEventListener('open', () => {
         setConnected(true);
         setError(null);
-        // Send join message
         socket.send(JSON.stringify({ type: 'join', room, username }));
       });
 
+      // listen to ws event
       socket.addEventListener('message', (ev) => {
         try {
           const data = JSON.parse(ev.data);
@@ -47,11 +44,12 @@ export function useWebSocket({
             setMembers(data.members || []);
             setMessages(data.history || []);
           } else if (data.type === 'member_joined') {
-            // Add new member to the list
-            setMembers((m) => [
-              ...m,
-              { id: data.clientId, username: data.user },
-            ]);
+            // Add new member to the list (avoid duplicates)
+            setMembers((m) => {
+              const memberExists = m.some((x) => x.id === data.clientId);
+              if (memberExists) return m;
+              return [...m, { id: data.clientId, username: data.user }];
+            });
           } else if (data.type === 'member_left') {
             // Remove member from the list
             setMembers((m) => m.filter((x) => x.id !== data.clientId));
@@ -98,11 +96,9 @@ export function useWebSocket({
         }
       }
     };
-  }, [room, username, wsUrl, onMessage, onError]);
+  }, [room, username, onMessage, onError]);
 
-  /**
-   * Send a text message to the room
-   */
+  //Send a text message to the room
   const sendMessage = (text) => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       setError('Not connected to WebSocket');
@@ -123,9 +119,7 @@ export function useWebSocket({
     }
   };
 
-  /**
-   * Request list of members and messages (useful for refreshing)
-   */
+  //  Request list of members and messages (useful for refreshing)
   const requestRoomList = () => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       setError('Not connected to WebSocket');
@@ -139,9 +133,7 @@ export function useWebSocket({
     }
   };
 
-  /**
-   * Manually leave the room and close connection
-   */
+  // Manually leave the room and close connection
   const disconnect = () => {
     if (wsRef.current) {
       try {
