@@ -1,15 +1,14 @@
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
-
-// In-memory structures for POC
-const rooms = {}; // { roomName: { members: Map(clientId->{username, ws}), messages: [{id, sender, text, ts}] } }
-
-function ensureRoom(room) {
-  if (!rooms[room]) {
-    rooms[room] = { members: new Map(), messages: [] };
-  }
-  return rooms[room];
-}
+const {
+  ensureRoom,
+  broadcastRoom,
+  removeMemberFromRoom,
+  addMessageToRoom,
+  getRoomMembers,
+  getRoomMessages,
+  getAllRooms,
+} = require('./lib-rooms');
 
 function handleMessage(ws, msg) {
   const { type } = msg;
@@ -19,13 +18,9 @@ function handleMessage(ws, msg) {
     r.members.set(ws.clientId, { username, ws });
 
     // send joined confirmation + current members and messages
-    const members = Array.from(r.members.entries()).map(([id, m]) => ({
-      id,
-      username: m.username,
-    }));
-    ws.send(
-      JSON.stringify({ type: 'joined', room, members, history: r.messages })
-    );
+    const members = getRoomMembers(room);
+    const history = getRoomMessages(room);
+    ws.send(JSON.stringify({ type: 'joined', room, members, history }));
 
     broadcastRoom(room, {
       type: 'member_joined',
@@ -34,11 +29,8 @@ function handleMessage(ws, msg) {
     });
   } else if (type === 'leave') {
     const { room } = msg;
-    const r = rooms[room];
-    if (!r) return;
-    const member = r.members.get(ws.clientId);
+    const member = removeMemberFromRoom(room, ws.clientId);
     if (member) {
-      r.members.delete(ws.clientId);
       broadcastRoom(room, {
         type: 'member_left',
         user: member.username,
@@ -47,33 +39,16 @@ function handleMessage(ws, msg) {
     }
   } else if (type === 'message') {
     const { room, text, sender } = msg;
-    const r = ensureRoom(room);
     const m = { id: uuidv4(), sender, text, ts: Date.now() };
-    r.messages.push(m);
+    addMessageToRoom(room, m);
     broadcastRoom(room, { type: 'message', message: m });
   } else if (type === 'list') {
     const { room } = msg;
-    const r = rooms[room] || { members: new Map(), messages: [] };
-    const members = Array.from(r.members.entries()).map(([id, m]) => ({
-      id,
-      username: m.username,
-    }));
-    ws.send(JSON.stringify({ type: 'list', members, history: r.messages }));
+    const members = getRoomMembers(room);
+    const history = getRoomMessages(room);
+    ws.send(JSON.stringify({ type: 'list', members, history }));
   } else {
     ws.send(JSON.stringify({ type: 'error', message: 'unknown_type' }));
-  }
-}
-
-function broadcastRoom(room, payload) {
-  const r = rooms[room];
-  if (!r) return;
-  const data = JSON.stringify(payload);
-  for (const [id, m] of r.members) {
-    try {
-      m.ws.send(data);
-    } catch (err) {
-      console.error('send err', err);
-    }
   }
 }
 
@@ -100,11 +75,10 @@ function initializeWebSocket(server) {
     });
 
     ws.on('close', () => {
-      // remove from any rooms
-      for (const [roomName, room] of Object.entries(rooms)) {
+      const allRooms = getAllRooms();
+      for (const [roomName, room] of Object.entries(allRooms)) {
         if (room.members.has(clientId)) {
-          const member = room.members.get(clientId);
-          room.members.delete(clientId);
+          const member = removeMemberFromRoom(roomName, clientId);
           broadcastRoom(roomName, {
             type: 'member_left',
             user: member.username,

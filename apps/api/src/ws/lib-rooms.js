@@ -60,19 +60,7 @@ function getRoomMessages(room) {
   return r ? r.messages : [];
 }
 
-// Cleans up empty rooms
-function cleanupEmptyRooms() {
-  for (const [roomName, room] of Object.entries(rooms)) {
-    if (room.members.size === 0) {
-      delete rooms[roomName];
-    }
-  }
-}
-
-/**
- * Gets all rooms (for debugging/monitoring)
- * @returns {Object} Rooms object
- */
+// Gets all rooms
 function getAllRooms() {
   return rooms;
 }
