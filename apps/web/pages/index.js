@@ -5,7 +5,7 @@ export default function Home() {
   const [username, setUsername] = useState('');
 
   // Mocked lists
-  const servers = [{ id: 's1', name: 'Server 1' }];
+
   const groups = [
     { id: 'g1', name: 'Group Alpha' },
     { id: 'g2', name: 'Group Beta' },
@@ -27,18 +27,7 @@ export default function Home() {
           />
         </div>
 
-        <section className="mb-6">
-          <h2 className="text-lg font-medium">Servers</h2>
-          <ul className="mt-2">
-            {servers.map((s) => (
-              <li key={s.id} className="py-1">
-                {s.name}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="mb-6">
+        <section className="mb-6 bg-red-500">
           <h2 className="text-lg font-medium">Groups</h2>
           <ul className="mt-2">
             {groups.map((g) => (
@@ -51,9 +40,9 @@ export default function Home() {
                       query: { room: g.id, username },
                     }}
                   >
-                    <a className="px-3 py-1 bg-blue-600 text-white rounded">
+                    <div className="px-3 py-1 bg-blue-600 text-white rounded">
                       Join (Group)
-                    </a>
+                    </div>
                   </Link>
                 </div>
               </li>
@@ -70,9 +59,9 @@ export default function Home() {
                 query: { room: 'dm-room', username },
               }}
             >
-              <a className="px-3 py-2 bg-green-600 text-white rounded">
+              <div className="px-3 py-2 bg-green-600 text-white rounded">
                 Open 2-user mock chat
-              </a>
+              </div>
             </Link>
           </div>
         </section>
