@@ -98,7 +98,7 @@ export function useWebSocket({ room, username, onMessage, onError }) {
     };
   }, [room, username, onMessage, onError]);
 
-  //Send a text message to the room
+  // Send a text message to the room
   const sendMessage = (text) => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       setError('Not connected to WebSocket');
@@ -119,7 +119,7 @@ export function useWebSocket({ room, username, onMessage, onError }) {
     }
   };
 
-  //  Request list of members and messages (useful for refreshing)
+  // Request list of members and messages (useful for refreshing)
   const requestRoomList = () => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       setError('Not connected to WebSocket');
