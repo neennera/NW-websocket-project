@@ -56,7 +56,6 @@ const rooms = {
 | `addMessageToRoom(room, message)`      | Adds message to room's message history             |
 | `getRoomMembers(room)`                 | Returns array of `{id, username}` objects          |
 | `getRoomMessages(room)`                | Returns array of all messages in room              |
-| `cleanupEmptyRooms()`                  | Deletes rooms with no members                      |
 | `getAllRooms()`                        | Returns entire rooms object (for debugging)        |
 
 ### Message Protocol

@@ -72,6 +72,5 @@ module.exports = {
   addMessageToRoom,
   getRoomMembers,
   getRoomMessages,
-  cleanupEmptyRooms,
   getAllRooms,
 };
