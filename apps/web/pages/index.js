@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 export default function Home() {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState('temp');
 
   // Mocked lists
 
