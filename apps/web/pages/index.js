@@ -51,7 +51,8 @@ export default function Home() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium">Quick 1:1 Chat</h2>
+          <h2 className="text-lg font-medium">Quick 1:1 Chats</h2>
+          <h2 className="text-lg text-red-500 font-medium">Quick 1:1 Chats</h2>
           <div className="mt-2">
             <Link
               href={{
