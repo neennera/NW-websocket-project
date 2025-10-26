@@ -27,7 +27,7 @@ export default function Home() {
           />
         </div>
 
-        <section className="mb-6 bg-red-500">
+        <section className="mb-6 ">
           <h2 className="text-lg font-medium">Groups</h2>
           <ul className="mt-2">
             {groups.map((g) => (
@@ -52,7 +52,6 @@ export default function Home() {
 
         <section>
           <h2 className="text-lg font-medium">Quick 1:1 Chats</h2>
-          <h2 className="text-lg text-red-500 font-medium">Quick 1:1 Chats</h2>
           <div className="mt-2">
             <Link
               href={{
