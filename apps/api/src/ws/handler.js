@@ -1,51 +1,83 @@
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const {
-  ensureRoom,
-  broadcastRoom,
-  removeMemberFromRoom,
-  addMessageToRoom,
+  addClientToRoom,
+  removeClientFromRoom,
+  broadcastToRoom,
   getRoomMembers,
-  getRoomMessages,
-  getAllRooms,
+  saveMessage,
+  getRoomMessageHistory,
+  getRoomInfo,
 } = require('./lib-rooms');
 
-function handleMessage(ws, msg) {
+// Map to store WebSocket connections by clientId
+const wsConnections = new Map();
+
+async function handleMessage(ws, msg) {
   const { type } = msg;
+
   if (type === 'join') {
     const { room, username } = msg;
-    const r = ensureRoom(room);
-    r.members.set(ws.clientId, { username, ws });
 
-    // send joined confirmation + current members and messages
+    // Add client to room
+    await addClientToRoom(room, ws.clientId, username);
+
+    // Get room info and message history from DB
     const members = getRoomMembers(room);
-    const history = getRoomMessages(room);
+    const history = await getRoomMessageHistory(room);
+
+    // Send joined confirmation
     ws.send(JSON.stringify({ type: 'joined', room, members, history }));
 
-    broadcastRoom(room, {
-      type: 'member_joined',
-      user: username,
-      clientId: ws.clientId,
-    });
+    // Broadcast member_joined to other clients
+    broadcastToRoom(
+      room,
+      {
+        type: 'member_joined',
+        user: username,
+        clientId: ws.clientId,
+      },
+      wsConnections
+    );
   } else if (type === 'leave') {
     const { room } = msg;
-    const member = removeMemberFromRoom(room, ws.clientId);
-    if (member) {
-      broadcastRoom(room, {
-        type: 'member_left',
-        user: member.username,
-        clientId: ws.clientId,
-      });
+    const client = await removeClientFromRoom(room, ws.clientId);
+    if (client) {
+      broadcastToRoom(
+        room,
+        {
+          type: 'member_left',
+          user: client.username,
+          clientId: ws.clientId,
+        },
+        wsConnections
+      );
     }
   } else if (type === 'message') {
     const { room, text, sender } = msg;
-    const m = { id: uuidv4(), sender, text, ts: Date.now() };
-    addMessageToRoom(room, m);
-    broadcastRoom(room, { type: 'message', message: m });
+
+    // Save message to database
+    const savedMessage = await saveMessage(room, sender, text);
+
+    if (savedMessage) {
+      // Broadcast message to room
+      broadcastToRoom(
+        room,
+        {
+          type: 'message',
+          message: savedMessage,
+        },
+        wsConnections
+      );
+    } else {
+      ws.send(
+        JSON.stringify({ type: 'error', message: 'Failed to save message' })
+      );
+    }
   } else if (type === 'list') {
     const { room } = msg;
     const members = getRoomMembers(room);
-    const history = getRoomMessages(room);
+    const history = await getRoomMessageHistory(room);
     ws.send(JSON.stringify({ type: 'list', members, history }));
   } else {
     ws.send(JSON.stringify({ type: 'error', message: 'unknown_type' }));
@@ -59,6 +91,11 @@ function initializeWebSocket(server) {
     const clientId = uuidv4();
     ws.clientId = clientId;
     ws.isAlive = true;
+
+    // Store WebSocket connection
+    wsConnections.set(clientId, ws);
+
+    console.log(`Client ${clientId} connected`);
 
     ws.on('pong', () => {
       ws.isAlive = true;
@@ -75,21 +112,17 @@ function initializeWebSocket(server) {
     });
 
     ws.on('close', () => {
-      const allRooms = getAllRooms();
-      for (const [roomName, room] of Object.entries(allRooms)) {
-        if (room.members.has(clientId)) {
-          const member = removeMemberFromRoom(roomName, clientId);
-          broadcastRoom(roomName, {
-            type: 'member_left',
-            user: member.username,
-            clientId,
-          });
-        }
-      }
+      // Remove client connection
+      wsConnections.delete(clientId);
+      console.log(`Client ${clientId} disconnected`);
+    });
+
+    ws.on('error', (err) => {
+      console.error(`WebSocket error for ${clientId}:`, err);
     });
   });
 
-  // periodic ping
+  // periodic ping to keep connections alive
   setInterval(() => {
     wss.clients.forEach((ws) => {
       if (ws.isAlive === false) return ws.terminate();
