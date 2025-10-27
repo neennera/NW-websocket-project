@@ -127,6 +127,10 @@ async function saveMessage(roomId, sender, text) {
   }
 }
 
+function isClientInRoom(roomId, clientId) {
+  return activeConnections[roomId] && activeConnections[roomId].has(clientId);
+}
+
 module.exports = {
   addClientToRoom,
   removeClientFromRoom,
@@ -135,4 +139,5 @@ module.exports = {
   saveMessage,
   getRoomMessageHistory,
   getRoomInfo,
+  isClientInRoom,
 };

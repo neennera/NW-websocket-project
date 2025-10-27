@@ -8,6 +8,7 @@ const {
   saveMessage,
   getRoomMessageHistory,
   getRoomInfo,
+  isClientInRoom,
 } = require('./lib-rooms');
 
 // Map to store WebSocket connections by clientId
@@ -19,6 +20,10 @@ async function handleMessage(ws, msg) {
   if (type === 'join') {
     const { roomId, username } = msg;
 
+    // Check if this is a new join or a refresh
+    // by checking if client is already in the room
+    const isNewJoin = !isClientInRoom(roomId, ws.clientId);
+
     // Add client to room
     await addClientToRoom(roomId, ws.clientId, username);
 
@@ -29,16 +34,18 @@ async function handleMessage(ws, msg) {
     // Send joined confirmation
     ws.send(JSON.stringify({ type: 'joined', roomId, members, history }));
 
-    // Broadcast member_joined to other clients
-    broadcastToRoom(
-      roomId,
-      {
-        type: 'member_joined',
-        user: username,
-        clientId: ws.clientId,
-      },
-      wsConnections
-    );
+    // Only broadcast member_joined if this is a NEW join (not a refresh)
+    if (isNewJoin) {
+      broadcastToRoom(
+        roomId,
+        {
+          type: 'member_joined',
+          user: username,
+          clientId: ws.clientId,
+        },
+        wsConnections
+      );
+    }
   } else if (type === 'leave') {
     const { roomId } = msg;
     const client = await removeClientFromRoom(roomId, ws.clientId);
