@@ -45,23 +45,25 @@ export function useWebSocket({ roomId, username, onMessage, onError }) {
             setMembers(data.members || []);
             setMessages(data.history || []);
           } else if (data.type === 'member_joined') {
-            // Skip if member already exists (should already be in list from DB)
-            setMembers((m) => {
-              const memberExists = m.some(
-                (x) => x.id.toString() === data.clientId.toString()
-              );
-              if (memberExists) {
-                console.log(
-                  `Member ${data.clientId} already in list from DB, skipping broadcast`
-                );
-                return m;
-              }
-              // This shouldn't normally happen since all members are from DB
-              return [...m, { id: data.clientId, username: data.user }];
-            });
+            // When someone joins, request the updated member list from server
+            // This ensures consistency across all browsers and avoids duplicates
+            console.log(`Member joined, requesting updated member list`);
+            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+              wsRef.current.send(JSON.stringify({ type: 'list', roomId }));
+            }
           } else if (data.type === 'member_left') {
-            // Remove member from the list
-            setMembers((m) => m.filter((x) => x.id !== data.clientId));
+            // When someone leaves, request the updated member list from server
+            console.log(`Member left, requesting updated member list`);
+            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+              wsRef.current.send(JSON.stringify({ type: 'list', roomId }));
+            }
+          } else if (data.type === 'list') {
+            // Response from server with updated member list
+            console.log(`Received updated member list:`, data.members);
+            setMembers(data.members || []);
+            if (data.history) {
+              setMessages(data.history);
+            }
           } else if (data.type === 'message') {
             // Add new message
             setMessages((m) => [...m, data.message]);

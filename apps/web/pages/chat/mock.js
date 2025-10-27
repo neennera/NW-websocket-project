@@ -114,5 +114,3 @@ function MessageInput({ onSendMessage }) {
     </div>
   );
 }
-
-import React from 'react';
