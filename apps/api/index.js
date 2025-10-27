@@ -16,8 +16,17 @@ app.use(express.json());
 // Mount routes
 app.use('/', routes);
 
+// Import route files
 const authRoutes = require('./src/routes/auth.routes.js');
-app.use('/auth', authRoutes);
+const profileRoutes = require('./src/routes/profile.routes.js');
+const groupRoutes = require('./src/routes/group.routes.js');
+const featureRoutes = require('./src/routes/feature.routes.js');
+
+// Use routes
+app.use('/auth', authRoutes);       // /auth/...
+app.use('/profile', profileRoutes); // /profile/...
+app.use('/groups', groupRoutes);    // /groups/...
+app.use('/', featureRoutes);        // /tags, /nicknames
 
 // Create HTTP server for WebSocket upgrade
 const server = http.createServer(app);
