@@ -16,6 +16,9 @@ app.use(express.json());
 // Mount routes
 app.use('/', routes);
 
+const authRoutes = require('./src/routes/auth.routes.js');
+app.use('/auth', authRoutes);
+
 // Create HTTP server for WebSocket upgrade
 const server = http.createServer(app);
 
