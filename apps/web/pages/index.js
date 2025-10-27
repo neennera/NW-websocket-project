@@ -2,14 +2,11 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 export default function Home() {
-  const [username, setUsername] = useState('temp');
+  const [username, setUsername] = useState('A');
 
-  // Mocked lists
-
-  const groups = [
-    { id: 'g1', name: 'Group Alpha' },
-    { id: 'g2', name: 'Group Beta' },
-  ];
+  // Mocked lists - room data from Group table
+  // For now, using seed data: group id=1 with name 'ABgroup'
+  const groups = [{ id: 1, name: 'ABgroup' }];
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -37,7 +34,7 @@ export default function Home() {
                   <Link
                     href={{
                       pathname: '/groupchat/mock',
-                      query: { room: g.id, username },
+                      query: { roomId: g.id, username },
                     }}
                   >
                     <div className="px-3 py-1 bg-blue-600 text-white rounded">
@@ -56,7 +53,7 @@ export default function Home() {
             <Link
               href={{
                 pathname: '/chat/mock',
-                query: { room: 'dm-room', username },
+                query: { roomId: 2, username },
               }}
             >
               <div className="px-3 py-2 bg-green-600 text-white rounded">

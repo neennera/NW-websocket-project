@@ -1,76 +1,143 @@
-// In-memory structures for POC
+const { PrismaClient } = require('@prisma/client');
 
-// DEV TODO : change in-memory rooms into a real room from DB
-// { roomName: { members: Map(clientId -> { username, ws }), messages: [{ id, sender, text, ts }] } }
-const rooms = {};
+const prisma = new PrismaClient();
 
-// DEV TODO : GET /room from room id
-function ensureRoom(room) {
-  if (!rooms[room]) {
-    rooms[room] = { members: new Map(), messages: [] };
+const activeConnections = {};
+
+async function addClientToRoom(roomId, clientId, username) {
+  if (!activeConnections[roomId]) {
+    activeConnections[roomId] = new Map();
   }
-  return rooms[room];
+  activeConnections[roomId].set(clientId, { username });
+  return { clientId, username };
 }
 
-// Broadcasts a payload to all members in a room
-function broadcastRoom(room, payload) {
-  const r = rooms[room];
-  if (!r) return;
+async function removeClientFromRoom(roomId, clientId) {
+  if (!activeConnections[roomId]) return null;
+  const client = activeConnections[roomId].get(clientId);
+  if (client) {
+    activeConnections[roomId].delete(clientId);
+    if (activeConnections[roomId].size === 0) {
+      delete activeConnections[roomId];
+    }
+  }
+  return client || null;
+}
+
+function broadcastToRoom(roomId, payload, wsConnections) {
+  if (!activeConnections[roomId]) return;
   const data = JSON.stringify(payload);
-  for (const [id, m] of r.members) {
-    try {
-      m.ws.send(data);
-    } catch (err) {
-      console.error('send err', err);
+  for (const [clientId, _] of activeConnections[roomId]) {
+    const ws = wsConnections.get(clientId);
+    if (ws && ws.readyState === 1) {
+      ws.send(data);
     }
   }
 }
 
-// Removes a member from a room, The removed member or null if not found
-function removeMemberFromRoom(room, clientId) {
-  const r = rooms[room];
-  if (!r) return null;
-  const member = r.members.get(clientId);
-  if (member) {
-    r.members.delete(clientId);
+async function getRoomMembers(roomId) {
+  try {
+    // roomId is now a numeric group ID, query directly
+    const group = await prisma.group.findUnique({
+      where: { id: roomId },
+      include: {
+        members: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (!group) {
+      return [];
+    }
+
+    // Return all group members from the database
+    return group.members.map((member) => ({
+      id: member.user.id.toString(),
+      username: member.user.username,
+    }));
+  } catch (err) {
+    console.error('Failed to get room members:', err);
+    return [];
   }
-  return member || null;
 }
 
-// Adds a message to a room's message history
-function addMessageToRoom(room, message) {
-  const r = ensureRoom(room);
-  r.messages.push(message);
-  // DEV TODO : add this into DB
+async function getRoomMessageHistory(roomId) {
+  try {
+    // roomId is now numeric, use it directly as groupId
+    const messages = await prisma.message.findMany({
+      where: { groupId: roomId },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        user: { select: { username: true } },
+      },
+    });
+    return messages.map((m) => ({
+      id: m.id,
+      sender: m.user?.username || 'Unknown',
+      text: m.content,
+      ts: m.createdAt.getTime(),
+    }));
+  } catch (err) {
+    console.error('Failed to fetch message history:', err);
+    return [];
+  }
 }
 
-// Gets all members in a room as an array => Array of {id, username}
-function getRoomMembers(room) {
-  const r = rooms[room];
-  if (!r) return [];
-  return Array.from(r.members.entries()).map(([id, m]) => ({
-    id,
-    username: m.username,
-  }));
+async function getRoomInfo(roomId) {
+  try {
+    // roomId is now numeric
+    const room = await prisma.group.findUnique({
+      where: { id: roomId },
+      include: {
+        _count: { select: { members: true } },
+      },
+    });
+    return room;
+  } catch (err) {
+    console.error('Failed to fetch room info:', err);
+    return null;
+  }
 }
 
-// Gets all messages in a room
-function getRoomMessages(room) {
-  const r = rooms[room];
-  return r ? r.messages : [];
+async function saveMessage(roomId, sender, text) {
+  try {
+    // roomId is now numeric, use it directly as groupId
+    const message = await prisma.message.create({
+      data: {
+        content: text,
+        groupId: roomId,
+        userId: 1, // TODO: Get actual userId from auth context
+      },
+    });
+    return {
+      id: message.id,
+      sender,
+      text: message.content,
+      ts: message.createdAt.getTime(),
+    };
+  } catch (err) {
+    console.error('Failed to save message:', err);
+    return null;
+  }
 }
 
-// Gets all rooms
-function getAllRooms() {
-  return rooms;
+function isClientInRoom(roomId, clientId) {
+  return activeConnections[roomId] && activeConnections[roomId].has(clientId);
 }
 
 module.exports = {
-  ensureRoom,
-  broadcastRoom,
-  removeMemberFromRoom,
-  addMessageToRoom,
+  addClientToRoom,
+  removeClientFromRoom,
+  broadcastToRoom,
   getRoomMembers,
-  getRoomMessages,
-  getAllRooms,
+  saveMessage,
+  getRoomMessageHistory,
+  getRoomInfo,
+  isClientInRoom,
 };

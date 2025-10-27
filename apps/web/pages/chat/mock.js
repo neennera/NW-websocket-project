@@ -1,37 +1,55 @@
 import { useRouter } from 'next/router';
+import React from 'react';
 import { useWebSocket } from '../../lib/useWebSocket';
 
 export default function ChatMock() {
   const router = useRouter();
-  const { room, username } = router.query;
+  const { roomId, username } = router.query;
 
-  const { connected, messages, members, error, sendMessage } = useWebSocket({
-    room,
-    username,
-  });
+  const { connected, messages, members, error, sendMessage, disconnect } =
+    useWebSocket({
+      roomId: roomId ? parseInt(roomId, 10) : null,
+      username,
+    });
 
   const handleSendMessage = (text) => {
     sendMessage(text);
   };
 
-  if (!room || !username) {
+  const handleLeaveRoom = () => {
+    disconnect();
+    router.push('/');
+  };
+
+  if (!roomId || !username) {
     return <div className="p-4">Loading...</div>;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-3xl mx-auto bg-white p-4 rounded shadow">
-        <h1 className="text-xl font-semibold">1:1 Mock Chat</h1>
-        <div className="text-sm text-gray-600">
-          Room: {room} — User: {username}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-xl font-semibold">1:1 Chat</h1>
+            <div className="text-sm text-gray-600">
+              Room ID: {roomId} — User: {username}
+            </div>
+            <div
+              className={`text-xs mt-2 ${
+                connected ? 'text-green-600' : 'text-red-600'
+              }`}
+            >
+              {connected ? '🟢 Connected' : '🔴 Disconnected'}
+            </div>
+          </div>
+          <button
+            onClick={handleLeaveRoom}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+          >
+            Leave Room
+          </button>
         </div>
-        <div
-          className={`text-xs mt-2 ${
-            connected ? 'text-green-600' : 'text-red-600'
-          }`}
-        >
-          {connected ? '🟢 Connected' : '🔴 Disconnected'}
-        </div>
+
         {error && (
           <div className="text-sm text-red-600 mt-2">Error: {error}</div>
         )}
@@ -47,14 +65,18 @@ export default function ChatMock() {
           </ul>
 
           <div className="h-64 overflow-auto border rounded p-2 bg-gray-50">
-            {messages.map((msg) => (
-              <div key={msg.id} className="mb-2">
-                <div className="text-xs text-gray-500">
-                  {msg.sender} • {new Date(msg.ts).toLocaleTimeString()}
+            {messages.length === 0 ? (
+              <p className="text-gray-400 text-sm">No messages yet</p>
+            ) : (
+              messages.map((msg) => (
+                <div key={msg.id} className="mb-2">
+                  <div className="text-xs text-gray-500">
+                    {msg.sender} • {new Date(msg.ts).toLocaleTimeString()}
+                  </div>
+                  <div>{msg.text}</div>
                 </div>
-                <div>{msg.text}</div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           <MessageInput onSendMessage={handleSendMessage} />
@@ -92,5 +114,3 @@ function MessageInput({ onSendMessage }) {
     </div>
   );
 }
-
-import React from 'react';
