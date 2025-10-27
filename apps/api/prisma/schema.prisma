@@ -7,39 +7,137 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//// ------------------------------- ////
+//// ---   Chat App DB Schema    --- ////
+//// ------------------------------- ////
+
+// --- Main table for users --- //
 model User {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  createdAt DateTime @default(now())
-  messages  Message[]
-  groups    GroupMember[]
+  id            Int     @id @default(autoincrement())
+  email         String  @unique
+  passwordHash  String // Stores hashed password (from password_hash)
+  username      String  @unique // Display name / public username
+  
+  // --- Feature 2: Avatar (included in User) --- //
+  avatarId      Int     @default(1) // Stores only ID (1-8) (from avatar_id)
+  
+  createdAt     DateTime @default(now()) // (from created_at)
+
+  // --- Relations (back-relations) --- //
+  // Tags that this User has created
+  tagsSet         UserTag[]   @relation("SetterTags")
+  // Tags that this User was tagged with
+  tagsReceived    UserTag[]   @relation("TargetTags")
+  
+  // Group memberships
+  memberships     GroupMember[]
+  
+  // Nicknames this User has assigned to others
+  nicknamesSet    Nickname[]  @relation("SetterNicknames")
+  // Nicknames assigned to this User
+  nicknamesReceived Nickname[]  @relation("TargetNicknames")
+  
+  // Messages sent by this User
+  messages        Message[]
+  
+  // Forbidden words added by this User
+  forbiddenWordsAdded ForbiddenWord[]
 }
 
+// --- UserTag table (Feature 3 - private tags) --- //
+model UserTag {
+  // 1. The tag owner (the user who created this tag)
+  userIdSetter Int    // (from user_id_setter)
+  setter       User   @relation("SetterTags", fields: [userIdSetter], references: [id])
+  
+  // 2. The tagged user (the user who was tagged)
+  userIdTarget Int    // (from user_id_target)
+  target       User   @relation("TargetTags", fields: [userIdTarget], references: [id])
+  
+  // 3. The tag name
+  tagName      String // (from tag_name)
+
+  // --- Primary Key (composite of 3 columns) --- //
+  @@id([userIdSetter, userIdTarget, tagName])
+  // Stores private tags; userIdSetter is the only user who will see this tag
+}
+
+
+// --- Group (chat room) table --- //
 model Group {
-  id        String        @id @default(uuid())
-  name      String
-  members   GroupMember[]
-  messages  Message[]
+  id              Int      @id @default(autoincrement())
+  name            String
+  isPrivateChat   Boolean  @default(false) // (from is_private_chat)
+  createdAt       DateTime @default(now()) // (from created_at)
+
+  // --- Relations (back-relations) --- //
+  members         GroupMember[]
+  nicknames       Nickname[]
+  messages        Message[]
+  forbiddenWords  ForbiddenWord[]
 }
 
+// --- GroupMember table (who is in which room) --- //
 model GroupMember {
-  id      String @id @default(uuid())
-  user    User   @relation(fields: [userId], references: [id])
-  userId  String
-  group   Group  @relation(fields: [groupId], references: [id])
-  groupId String
-  role    String?
-  joinedAt DateTime @default(now())
+  userId    Int // (from user_id)
+  user      User    @relation(fields: [userId], references: [id])
+  
+  groupId   Int // (from group_id)
+  group     Group   @relation(fields: [groupId], references: [id])
+  
+  joinedAt  DateTime @default(now()) // (from joined_at)
 
-  @@unique([userId, groupId])
+  // --- Primary Key (composite of 2 columns) --- //
+  @@id([userId, groupId])
 }
 
+// --- Nickname table (feature #1) --- //
+model Nickname {
+  groupId  Int   // (from group_id)
+  group    Group @relation(fields: [groupId], references: [id])
+
+  // The user who *set* the nickname
+  userIdSetter Int   // (from user_id_setter)
+  setter       User  @relation("SetterNicknames", fields: [userIdSetter], references: [id])
+
+  // The user who *was given* the nickname
+  userIdTarget Int   // (from user_id_target)
+  target       User  @relation("TargetNicknames", fields: [userIdTarget], references: [id])
+
+  nickname String
+
+  // --- Primary Key (composite of 3 columns) --- //
+  @@id([groupId, userIdSetter, userIdTarget])
+}
+
+// --- Message table (chat messages) --- //
 model Message {
-  id        String   @id @default(uuid())
-  text      String
-  sender    User?    @relation(fields: [senderId], references: [id])
-  senderId  String?
-  group     Group?   @relation(fields: [groupId], references: [id])
-  groupId   String?
-  createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  content   String   // Prisma uses String (no separate Text type)
+  
+  userId    Int // (from user_id)
+  user      User     @relation(fields: [userId], references: [id])
+  
+  groupId   Int // (from group_id)
+  group     Group    @relation(fields: [groupId], references: [id])
+  
+  createdAt DateTime @default(now()) // (from created_at)
+}
+
+// --- ForbiddenWord table (feature #4 - per-chat forbidden words) --- //
+model ForbiddenWord {
+  id      Int     @id @default(autoincrement())
+  word    String
+
+  // NULL = Global, non-null = specific to a group
+  groupId Int?    // (from group_id)
+  group   Group?  @relation(fields: [groupId], references: [id])
+
+  // Who added it (could be an admin or a member)
+  addedByUserId Int?    // (from added_by_user_id)
+  addedBy       User?   @relation(fields: [addedByUserId], references: [id])
+
+  // Forbidden words must be unique per room
+  @@unique([word, groupId])
+  // groupId = NULL means Global Forbidden Word (if used)
 }

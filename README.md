@@ -37,3 +37,14 @@ Notes
 
 - Prisma schema is a starting point; migrations not run automatically. Set DATABASE_URL in `apps/api/.env` before running Prisma commands.
 - This is a mock POC: rooms and message history are stored in memory in the server for demonstration only.
+ 
+Important reminder
+
+- Before starting the API (or running the app), run the Prisma migrations to create/update the database schema:
+
+```powershell
+cd "apps/api"
+pnpm prisma migrate dev
+```
+
+Make sure `DATABASE_URL` is set in `apps/api/.env` (or in your environment) before running the command.
