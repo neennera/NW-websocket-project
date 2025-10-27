@@ -48,3 +48,23 @@ pnpm prisma migrate dev
 ```
 
 Make sure `DATABASE_URL` is set in `apps/api/.env` (or in your environment) before running the command.
+
+Seed the database (optional)
+
+- After running migrations, you can seed the database with example data using Prisma's seed command:
+
+```powershell
+cd "apps/api"
+pnpm prisma db seed
+```
+
+Ensure that `apps/api/package.json` contains the `prisma.seed` script pointing to your seed file (for example: `"prisma": { "seed": "node prisma\\seed.js" }`) and that the seed file (e.g. `apps/api/prisma/seed.js`) exists.
+
+Seeded users (example)
+
+- The provided seed file creates two example users you can use for testing:
+
+   - email: `alice@example.com`  | username: `alice`  | password: `pass123`
+   - email: `bob@example.com`    | username: `bob`    | password: `pass123`
+
+   The seed script hashes the passwords before inserting into the database. Use these credentials in the frontend or API testers to sign in or simulate user actions.
