@@ -17,21 +17,21 @@ async function handleMessage(ws, msg) {
   const { type } = msg;
 
   if (type === 'join') {
-    const { room, username } = msg;
+    const { roomId, username } = msg;
 
     // Add client to room
-    await addClientToRoom(room, ws.clientId, username);
+    await addClientToRoom(roomId, ws.clientId, username);
 
     // Get room info and message history from DB
-    const members = getRoomMembers(room);
-    const history = await getRoomMessageHistory(room);
+    const members = await getRoomMembers(roomId);
+    const history = await getRoomMessageHistory(roomId);
 
     // Send joined confirmation
-    ws.send(JSON.stringify({ type: 'joined', room, members, history }));
+    ws.send(JSON.stringify({ type: 'joined', roomId, members, history }));
 
     // Broadcast member_joined to other clients
     broadcastToRoom(
-      room,
+      roomId,
       {
         type: 'member_joined',
         user: username,
@@ -40,11 +40,11 @@ async function handleMessage(ws, msg) {
       wsConnections
     );
   } else if (type === 'leave') {
-    const { room } = msg;
-    const client = await removeClientFromRoom(room, ws.clientId);
+    const { roomId } = msg;
+    const client = await removeClientFromRoom(roomId, ws.clientId);
     if (client) {
       broadcastToRoom(
-        room,
+        roomId,
         {
           type: 'member_left',
           user: client.username,
@@ -54,15 +54,15 @@ async function handleMessage(ws, msg) {
       );
     }
   } else if (type === 'message') {
-    const { room, text, sender } = msg;
+    const { roomId, text, sender } = msg;
 
     // Save message to database
-    const savedMessage = await saveMessage(room, sender, text);
+    const savedMessage = await saveMessage(roomId, sender, text);
 
     if (savedMessage) {
       // Broadcast message to room
       broadcastToRoom(
-        room,
+        roomId,
         {
           type: 'message',
           message: savedMessage,
@@ -75,9 +75,9 @@ async function handleMessage(ws, msg) {
       );
     }
   } else if (type === 'list') {
-    const { room } = msg;
-    const members = getRoomMembers(room);
-    const history = await getRoomMessageHistory(room);
+    const { roomId } = msg;
+    const members = await getRoomMembers(roomId);
+    const history = await getRoomMessageHistory(roomId);
     ws.send(JSON.stringify({ type: 'list', members, history }));
   } else {
     ws.send(JSON.stringify({ type: 'error', message: 'unknown_type' }));

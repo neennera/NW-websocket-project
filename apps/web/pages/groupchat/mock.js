@@ -4,11 +4,11 @@ import { useWebSocket } from '../../lib/useWebSocket';
 
 export default function GroupChatMock() {
   const router = useRouter();
-  const { room, username } = router.query;
+  const { roomId, username } = router.query;
 
   const { connected, messages, members, error, sendMessage, disconnect } =
     useWebSocket({
-      room,
+      roomId: roomId ? parseInt(roomId, 10) : null,
       username,
     });
 
@@ -21,7 +21,7 @@ export default function GroupChatMock() {
     router.push('/');
   };
 
-  if (!room || !username) {
+  if (!roomId || !username) {
     return <div className="p-4">Loading...</div>;
   }
 
@@ -32,7 +32,7 @@ export default function GroupChatMock() {
           <div>
             <h1 className="text-xl font-semibold">Group Chat</h1>
             <div className="text-sm text-gray-600">
-              Room: {room} — User: {username}
+              Room ID: {roomId} — User: {username}
             </div>
             <div
               className={`text-xs mt-2 ${

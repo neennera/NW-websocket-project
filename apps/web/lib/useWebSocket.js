@@ -3,13 +3,13 @@ import { useEffect, useRef, useState } from 'react';
 /**
  * Custom React hook for WebSocket connections to chat rooms
  * @param {Object} config - Configuration object
- * @param {string} config.room - Room identifier
+ * @param {number} config.roomId - Room ID (group id)
  * @param {string} config.username - User's display name
  * @param {Function} config.onMessage - Callback when any message is received
  * @param {Function} config.onError - Callback when error occurs
  * @returns {Object} WebSocket state and controls
  */
-export function useWebSocket({ room, username, onMessage, onError }) {
+export function useWebSocket({ roomId, username, onMessage, onError }) {
   const [connected, setConnected] = useState(false);
   const [messages, setMessages] = useState([]);
   const [members, setMembers] = useState([]);
@@ -21,7 +21,7 @@ export function useWebSocket({ room, username, onMessage, onError }) {
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001/ws';
     console.log('Connecting to WebSocket:', wsUrl);
 
-    if (!room || !username) return;
+    if (!roomId || !username) return;
 
     try {
       const socket = new WebSocket(wsUrl);
@@ -31,7 +31,7 @@ export function useWebSocket({ room, username, onMessage, onError }) {
       socket.addEventListener('open', () => {
         setConnected(true);
         setError(null);
-        socket.send(JSON.stringify({ type: 'join', room, username }));
+        socket.send(JSON.stringify({ type: 'join', roomId, username }));
       });
 
       // listen to ws event
@@ -40,22 +40,23 @@ export function useWebSocket({ room, username, onMessage, onError }) {
           const data = JSON.parse(ev.data);
 
           if (data.type === 'joined') {
-            // Initial state when joining a room - deduplicate by clientId
-            const uniqueMembers = Array.from(
-              new Map((data.members || []).map((m) => [m.id, m])).values()
-            );
-            setMembers(uniqueMembers);
+            // Initial state when joining a room
+            // Members come from DB (all GroupMembers), so just set them directly
+            setMembers(data.members || []);
             setMessages(data.history || []);
           } else if (data.type === 'member_joined') {
-            // Add new member to the list (avoid duplicates by clientId)
+            // Skip if member already exists (should already be in list from DB)
             setMembers((m) => {
-              const memberExists = m.some((x) => x.id === data.clientId);
+              const memberExists = m.some(
+                (x) => x.id.toString() === data.clientId.toString()
+              );
               if (memberExists) {
-                console.warn(
-                  `Member ${data.clientId} already exists, skipping duplicate`
+                console.log(
+                  `Member ${data.clientId} already in list from DB, skipping broadcast`
                 );
                 return m;
               }
+              // This shouldn't normally happen since all members are from DB
               return [...m, { id: data.clientId, username: data.user }];
             });
           } else if (data.type === 'member_left') {
@@ -93,18 +94,18 @@ export function useWebSocket({ room, username, onMessage, onError }) {
       if (onError) onError(err);
     }
 
-    // Cleanup on unmount or when room/username changes
+    // Cleanup on unmount or when roomId/username changes
     return () => {
       if (wsRef.current) {
         try {
-          wsRef.current.send(JSON.stringify({ type: 'leave', room }));
+          wsRef.current.send(JSON.stringify({ type: 'leave', roomId }));
           wsRef.current.close();
         } catch (e) {
           console.error('Error closing WebSocket:', e);
         }
       }
     };
-  }, [room, username, onMessage, onError]);
+  }, [roomId, username, onMessage, onError]);
 
   // Send a text message to the room
   const sendMessage = (text) => {
@@ -117,7 +118,7 @@ export function useWebSocket({ room, username, onMessage, onError }) {
     }
     try {
       wsRef.current.send(
-        JSON.stringify({ type: 'message', room, text, sender: username })
+        JSON.stringify({ type: 'message', roomId, text, sender: username })
       );
       return true;
     } catch (err) {
@@ -134,7 +135,7 @@ export function useWebSocket({ room, username, onMessage, onError }) {
       return;
     }
     try {
-      wsRef.current.send(JSON.stringify({ type: 'list', room }));
+      wsRef.current.send(JSON.stringify({ type: 'list', roomId }));
     } catch (err) {
       console.error('Failed to request room list:', err);
       setError('Failed to request room list');
@@ -145,7 +146,7 @@ export function useWebSocket({ room, username, onMessage, onError }) {
   const disconnect = () => {
     if (wsRef.current) {
       try {
-        wsRef.current.send(JSON.stringify({ type: 'leave', room }));
+        wsRef.current.send(JSON.stringify({ type: 'leave', roomId }));
         wsRef.current.close();
       } catch (e) {
         console.error('Error disconnecting:', e);

@@ -35,58 +35,44 @@ function broadcastToRoom(roomId, payload, wsConnections) {
   }
 }
 
-function getRoomMembers(roomId) {
-  if (!activeConnections[roomId]) return [];
-  return Array.from(activeConnections[roomId].entries()).map(
-    ([id, client]) => ({
-      id,
-      username: client.username,
-    })
-  );
-}
-
-async function saveMessage(roomId, sender, text) {
+async function getRoomMembers(roomId) {
   try {
-    console.log('****************************************************');
-
-    console.log('------------------', roomId);
-
-    // roomId is now the group name, find the group by name
+    // roomId is now a numeric group ID, query directly
     const group = await prisma.group.findUnique({
-      where: { name: roomId },
+      where: { id: roomId },
+      include: {
+        members: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
 
     if (!group) {
-      console.error(`Group not found: ${roomId}`);
-      return null;
+      return [];
     }
 
-    const message = await prisma.message.create({
-      data: {
-        text,
-        groupId: group.id,
-      },
-    });
-    return {
-      id: message.id,
-      sender,
-      text: message.text,
-      ts: message.createdAt.getTime(),
-    };
+    // Return all group members from the database
+    return group.members.map((member) => ({
+      id: member.user.id.toString(),
+      username: member.user.username,
+    }));
   } catch (err) {
-    console.error('Failed to save message:', err);
-    return null;
+    console.error('Failed to get room members:', err);
+    return [];
   }
 }
 
 async function getRoomMessageHistory(roomId) {
   try {
+    // roomId is now numeric, use it directly as groupId
     const messages = await prisma.message.findMany({
-      where: { name: roomId },
+      where: { groupId: roomId },
       orderBy: { createdAt: 'asc' },
       select: {
         id: true,
-        text: true,
+        content: true,
         createdAt: true,
         user: { select: { username: true } },
       },
@@ -94,7 +80,7 @@ async function getRoomMessageHistory(roomId) {
     return messages.map((m) => ({
       id: m.id,
       sender: m.user?.username || 'Unknown',
-      text: m.text,
+      text: m.content,
       ts: m.createdAt.getTime(),
     }));
   } catch (err) {
@@ -105,8 +91,9 @@ async function getRoomMessageHistory(roomId) {
 
 async function getRoomInfo(roomId) {
   try {
+    // roomId is now numeric
     const room = await prisma.group.findUnique({
-      where: { name: roomId },
+      where: { id: roomId },
       include: {
         _count: { select: { members: true } },
       },
@@ -114,6 +101,28 @@ async function getRoomInfo(roomId) {
     return room;
   } catch (err) {
     console.error('Failed to fetch room info:', err);
+    return null;
+  }
+}
+
+async function saveMessage(roomId, sender, text) {
+  try {
+    // roomId is now numeric, use it directly as groupId
+    const message = await prisma.message.create({
+      data: {
+        content: text,
+        groupId: roomId,
+        userId: 1, // TODO: Get actual userId from auth context
+      },
+    });
+    return {
+      id: message.id,
+      sender,
+      text: message.content,
+      ts: message.createdAt.getTime(),
+    };
+  } catch (err) {
+    console.error('Failed to save message:', err);
     return null;
   }
 }
