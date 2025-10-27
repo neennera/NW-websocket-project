@@ -6,13 +6,19 @@ export default function GroupChatMock() {
   const router = useRouter();
   const { room, username } = router.query;
 
-  const { connected, messages, members, error, sendMessage } = useWebSocket({
-    room,
-    username,
-  });
+  const { connected, messages, members, error, sendMessage, disconnect } =
+    useWebSocket({
+      room,
+      username,
+    });
 
   const handleSendMessage = (text) => {
     sendMessage(text);
+  };
+
+  const handleLeaveRoom = () => {
+    disconnect();
+    router.push('/');
   };
 
   if (!room || !username) {
@@ -22,17 +28,28 @@ export default function GroupChatMock() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-3xl mx-auto bg-white p-4 rounded shadow">
-        <h1 className="text-xl font-semibold">Group Chat</h1>
-        <div className="text-sm text-gray-600">
-          Room: {room} — User: {username}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-xl font-semibold">Group Chat</h1>
+            <div className="text-sm text-gray-600">
+              Room: {room} — User: {username}
+            </div>
+            <div
+              className={`text-xs mt-2 ${
+                connected ? 'text-green-600' : 'text-red-600'
+              }`}
+            >
+              {connected ? '🟢 Connected' : '🔴 Disconnected'}
+            </div>
+          </div>
+          <button
+            onClick={handleLeaveRoom}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+          >
+            Leave Room
+          </button>
         </div>
-        <div
-          className={`text-xs mt-2 ${
-            connected ? 'text-green-600' : 'text-red-600'
-          }`}
-        >
-          {connected ? '🟢 Connected' : '🔴 Disconnected'}
-        </div>
+
         {error && (
           <div className="text-sm text-red-600 mt-2">Error: {error}</div>
         )}

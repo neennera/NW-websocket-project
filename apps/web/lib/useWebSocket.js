@@ -40,14 +40,22 @@ export function useWebSocket({ room, username, onMessage, onError }) {
           const data = JSON.parse(ev.data);
 
           if (data.type === 'joined') {
-            // Initial state when joining a room
-            setMembers(data.members || []);
+            // Initial state when joining a room - deduplicate by clientId
+            const uniqueMembers = Array.from(
+              new Map((data.members || []).map((m) => [m.id, m])).values()
+            );
+            setMembers(uniqueMembers);
             setMessages(data.history || []);
           } else if (data.type === 'member_joined') {
-            // Add new member to the list (avoid duplicates)
+            // Add new member to the list (avoid duplicates by clientId)
             setMembers((m) => {
               const memberExists = m.some((x) => x.id === data.clientId);
-              if (memberExists) return m;
+              if (memberExists) {
+                console.warn(
+                  `Member ${data.clientId} already exists, skipping duplicate`
+                );
+                return m;
+              }
               return [...m, { id: data.clientId, username: data.user }];
             });
           } else if (data.type === 'member_left') {

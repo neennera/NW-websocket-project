@@ -2,14 +2,10 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 export default function Home() {
-  const [username, setUsername] = useState('temp');
+  const [username, setUsername] = useState('');
 
-  // Mocked lists
-
-  const groups = [
-    { id: 'g1', name: 'Group Alpha' },
-    { id: 'g2', name: 'Group Beta' },
-  ];
+  // Mocked lists - room names from Group table
+  const groups = [{ name: 'Group Alpha' }, { name: 'Group Beta' }];
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -31,13 +27,16 @@ export default function Home() {
           <h2 className="text-lg font-medium">Groups</h2>
           <ul className="mt-2">
             {groups.map((g) => (
-              <li key={g.id} className="py-2 flex items-center justify-between">
+              <li
+                key={g.name}
+                className="py-2 flex items-center justify-between"
+              >
                 <div>{g.name}</div>
                 <div className="space-x-2">
                   <Link
                     href={{
                       pathname: '/groupchat/mock',
-                      query: { room: g.id, username },
+                      query: { room: g.name, username },
                     }}
                   >
                     <div className="px-3 py-1 bg-blue-600 text-white rounded">

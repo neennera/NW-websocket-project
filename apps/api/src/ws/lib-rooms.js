@@ -46,47 +46,76 @@ function getRoomMembers(roomId) {
 }
 
 async function saveMessage(roomId, sender, text) {
-  const message = await prisma.message.create({
-    data: {
-      text,
-      groupId: roomId,
-    },
-  });
-  return {
-    id: message.id,
-    sender,
-    text: message.text,
-    ts: message.createdAt.getTime(),
-  };
+  try {
+    console.log('****************************************************');
+
+    console.log('------------------', roomId);
+
+    // roomId is now the group name, find the group by name
+    const group = await prisma.group.findUnique({
+      where: { name: roomId },
+    });
+
+    if (!group) {
+      console.error(`Group not found: ${roomId}`);
+      return null;
+    }
+
+    const message = await prisma.message.create({
+      data: {
+        text,
+        groupId: group.id,
+      },
+    });
+    return {
+      id: message.id,
+      sender,
+      text: message.text,
+      ts: message.createdAt.getTime(),
+    };
+  } catch (err) {
+    console.error('Failed to save message:', err);
+    return null;
+  }
 }
 
 async function getRoomMessageHistory(roomId) {
-  const messages = await prisma.message.findMany({
-    where: { groupId: roomId },
-    orderBy: { createdAt: 'asc' },
-    select: {
-      id: true,
-      text: true,
-      createdAt: true,
-      sender: { select: { username: true } },
-    },
-  });
-  return messages.map((m) => ({
-    id: m.id,
-    sender: m.sender?.username || 'Unknown',
-    text: m.text,
-    ts: m.createdAt.getTime(),
-  }));
+  try {
+    const messages = await prisma.message.findMany({
+      where: { name: roomId },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        text: true,
+        createdAt: true,
+        user: { select: { username: true } },
+      },
+    });
+    return messages.map((m) => ({
+      id: m.id,
+      sender: m.user?.username || 'Unknown',
+      text: m.text,
+      ts: m.createdAt.getTime(),
+    }));
+  } catch (err) {
+    console.error('Failed to fetch message history:', err);
+    return [];
+  }
 }
 
 async function getRoomInfo(roomId) {
-  const room = await prisma.group.findUnique({
-    where: { id: roomId },
-    include: {
-      _count: { select: { members: true } },
-    },
-  });
-  return room;
+  try {
+    const room = await prisma.group.findUnique({
+      where: { name: roomId },
+      include: {
+        _count: { select: { members: true } },
+      },
+    });
+    return room;
+  } catch (err) {
+    console.error('Failed to fetch room info:', err);
+    return null;
+  }
 }
 
 module.exports = {
