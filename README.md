@@ -12,13 +12,16 @@ Quick run (Windows cmd.exe)
 
 1. Start Postgres
 
+```
    docker-compose up -d
+   pnpm run seed
+```
 
 2. From project root, install dependencies (runs in each workspace)
 
 ```
 cd apps/web -> pnpm install
-cd apps/api -> pnpm install
+cd apps/api -> pnpm install -> pnpm run seed
 ```
 
 3. Start api and web in **separate terminals** or use the scripts:
@@ -37,7 +40,7 @@ Notes
 
 - Prisma schema is a starting point; migrations not run automatically. Set DATABASE_URL in `apps/api/.env` before running Prisma commands.
 - This is a mock POC: rooms and message history are stored in memory in the server for demonstration only.
- 
+
 Important reminder
 
 - Before starting the API (or running the app), run the Prisma migrations to create/update the database schema:
@@ -64,7 +67,7 @@ Seeded users (example)
 
 - The provided seed file creates two example users you can use for testing:
 
-   - email: `alice@example.com`  | username: `alice`  | password: `pass123`
-   - email: `bob@example.com`    | username: `bob`    | password: `pass123`
+  - email: `alice@example.com` | username: `alice` | password: `pass123`
+  - email: `bob@example.com` | username: `bob` | password: `pass123`
 
-   The seed script hashes the passwords before inserting into the database. Use these credentials in the frontend or API testers to sign in or simulate user actions.
+  The seed script hashes the passwords before inserting into the database. Use these credentials in the frontend or API testers to sign in or simulate user actions.
