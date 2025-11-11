@@ -86,31 +86,70 @@ export default function RegisterLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '1rem',
+      background: 'linear-gradient(135deg, #FAF6F1 0%, #F5EBE0 50%, #E3D5CA 100%)'
+    }}>
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '24px',
+        boxShadow: '0 8px 32px rgba(139, 115, 85, 0.15)',
+        padding: '2.5rem',
+        width: '100%',
+        maxWidth: '28rem',
+        border: '1px solid rgba(213, 189, 175, 0.3)'
+      }}>
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <h1 style={{
+            fontSize: '2.5rem',
+            fontWeight: '700',
+            background: 'linear-gradient(135deg, #C9A882 0%, #8B7355 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            marginBottom: '0.5rem',
+            letterSpacing: '-0.02em'
+          }}>
             {isLogin ? 'Welcome Back! 👋' : 'Join Us! 🎉'}
           </h1>
-          <p className="text-gray-600">
+          <p style={{ color: '#8B7355', fontSize: '0.95rem', opacity: 0.9 }}>
             {isLogin ? 'Login to continue your journey' : 'Create your account to get started'}
           </p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded">
-            <p className="font-medium">⚠️ {error}</p>
+          <div style={{
+            marginBottom: '1.5rem',
+            padding: '1rem',
+            background: 'linear-gradient(135deg, #FFE5E5 0%, #FFD5D5 100%)',
+            borderLeft: '4px solid #D4756B',
+            color: '#8B3A3A',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(212, 117, 107, 0.1)'
+          }}>
+            <p style={{ fontWeight: '600', margin: 0 }}>⚠️ {error}</p>
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {/* Username (Register Only) */}
           {!isLogin && (
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                color: '#8B7355',
+                marginBottom: '0.5rem'
+              }}>
                 Username ✨
               </label>
               <input
@@ -127,7 +166,13 @@ export default function RegisterLogin() {
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#8B7355',
+              marginBottom: '0.5rem'
+            }}>
               Email 📧
             </label>
             <input
@@ -143,7 +188,13 @@ export default function RegisterLogin() {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#8B7355',
+              marginBottom: '0.5rem'
+            }}>
               Password 🔒
             </label>
             <input
@@ -160,20 +211,55 @@ export default function RegisterLogin() {
           {/* Avatar Selection (Register Only) */}
           {!isLogin && (
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                color: '#8B7355',
+                marginBottom: '0.75rem'
+              }}>
                 Choose Your Avatar 🎭
               </label>
-              <div className="grid grid-cols-4 gap-3">
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: '0.75rem'
+              }}>
                 {AVATARS.map((emoji, index) => (
                   <button
                     key={index}
                     type="button"
                     onClick={() => handleAvatarSelect(index)}
-                    className={`avatar-option ${
-                      formData.avatar_id === index + 1 ? 'avatar-selected' : ''
-                    }`}
+                    style={{
+                      padding: '1rem',
+                      background: formData.avatar_id === index + 1 
+                        ? 'linear-gradient(135deg, #D5BDAF 0%, #C9A882 100%)'
+                        : 'linear-gradient(135deg, #FAF6F1 0%, #F5EBE0 100%)',
+                      border: formData.avatar_id === index + 1 
+                        ? '2px solid #C9A882'
+                        : '2px solid #E3D5CA',
+                      borderRadius: '16px',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      transform: formData.avatar_id === index + 1 ? 'scale(1.05)' : 'scale(1)',
+                      boxShadow: formData.avatar_id === index + 1 
+                        ? '0 4px 12px rgba(201, 168, 130, 0.3)'
+                        : '0 2px 8px rgba(139, 115, 85, 0.1)'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (formData.avatar_id !== index + 1) {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.borderColor = '#D5BDAF';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (formData.avatar_id !== index + 1) {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.borderColor = '#E3D5CA';
+                      }
+                    }}
                   >
-                    <div className="text-4xl">{emoji}</div>
+                    <div style={{ fontSize: '2.5rem', textAlign: 'center' }}>{emoji}</div>
                   </button>
                 ))}
               </div>
@@ -184,13 +270,46 @@ export default function RegisterLogin() {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary mt-6"
+            style={{
+              width: '100%',
+              padding: '0.875rem 1.5rem',
+              marginTop: '1rem',
+              background: loading 
+                ? 'linear-gradient(135deg, #D5BDAF 0%, #C9A882 100%)'
+                : 'linear-gradient(135deg, #C9A882 0%, #8B7355 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '16px',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 4px 12px rgba(139, 115, 85, 0.2)',
+              opacity: loading ? 0.7 : 1
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(139, 115, 85, 0.3)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loading) {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 115, 85, 0.2)';
+              }
+            }}
           >
             {loading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg style={{ 
+                  animation: 'spin 1s linear infinite',
+                  height: '1.25rem',
+                  width: '1.25rem',
+                  marginRight: '0.75rem'
+                }} viewBox="0 0 24 24">
+                  <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                  <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 Loading...
               </span>
@@ -201,13 +320,24 @@ export default function RegisterLogin() {
         </form>
 
         {/* Toggle Login/Register */}
-        <div className="mt-6 text-center">
-          <p className="text-gray-600">
+        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+          <p style={{ color: '#8B7355', fontSize: '0.95rem' }}>
             {isLogin ? "Don't have an account? " : 'Already have an account? '}
             <button
               type="button"
               onClick={toggleMode}
-              className="font-semibold text-purple-600 hover:text-pink-600 transition-colors"
+              style={{
+                background: 'none',
+                border: 'none',
+                fontWeight: '600',
+                color: '#C9A882',
+                cursor: 'pointer',
+                transition: 'color 0.3s ease',
+                padding: 0,
+                fontSize: '0.95rem'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#8B7355'}
+              onMouseLeave={(e) => e.currentTarget.style.color = '#C9A882'}
             >
               {isLogin ? 'Register here 🎨' : 'Login here 🎯'}
             </button>
@@ -215,12 +345,48 @@ export default function RegisterLogin() {
         </div>
 
         {/* Decorative Elements */}
-        <div className="mt-8 flex justify-center space-x-2">
-          <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
-          <div className="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-          <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+        <div style={{ 
+          marginTop: '2rem', 
+          display: 'flex', 
+          justifyContent: 'center', 
+          gap: '0.5rem' 
+        }}>
+          <div style={{
+            width: '0.5rem',
+            height: '0.5rem',
+            background: '#C9A882',
+            borderRadius: '50%',
+            animation: 'bounce 1s infinite'
+          }}></div>
+          <div style={{
+            width: '0.5rem',
+            height: '0.5rem',
+            background: '#D5BDAF',
+            borderRadius: '50%',
+            animation: 'bounce 1s infinite',
+            animationDelay: '0.1s'
+          }}></div>
+          <div style={{
+            width: '0.5rem',
+            height: '0.5rem',
+            background: '#C9A882',
+            borderRadius: '50%',
+            animation: 'bounce 1s infinite',
+            animationDelay: '0.2s'
+          }}></div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-0.5rem); }
+        }
+      `}</style>
     </div>
   );
 }

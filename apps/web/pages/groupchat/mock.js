@@ -265,34 +265,85 @@ export default function GroupChatMock() {
 
   if (!roomId || !username || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-2xl">Loading... ⏳</div>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #FAF6F1 0%, #F5EBE0 100%)'
+      }}>
+        <div style={{
+          fontSize: '1.5rem',
+          color: '#8B7355',
+          fontWeight: '600'
+        }}>
+          Loading... ⏳
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 shadow-lg">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
+      <div style={{
+        background: 'linear-gradient(135deg, #C9A882 0%, #8B7355 100%)',
+        color: 'white',
+        padding: '1rem',
+        boxShadow: '0 4px 12px rgba(139, 115, 85, 0.2)'
+      }}>
+        <div style={{
+          maxWidth: '1536px',
+          margin: '0 auto',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <button
               onClick={handleLeaveRoom}
-              className="text-2xl hover:scale-110 transition-transform"
+              style={{
+                fontSize: '1.5rem',
+                background: 'none',
+                border: 'none',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'transform 0.3s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
               ←
             </button>
             <div>
-              <h1 className="text-2xl font-bold">👥 {groupInfo?.name || 'Group Chat'}</h1>
-              <p className="text-sm opacity-90">
+              <h1 style={{
+                fontSize: '1.5rem',
+                fontWeight: '700',
+                margin: 0
+              }}>
+                👥 {groupInfo?.name || 'Group Chat'}
+              </h1>
+              <p style={{
+                fontSize: '0.875rem',
+                opacity: 0.9,
+                margin: '0.25rem 0 0 0'
+              }}>
                 {members.length} members • {connected ? '🟢 Connected' : '🔴 Disconnected'}
               </p>
             </div>
           </div>
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="text-3xl hover:scale-110 transition-transform"
+            style={{
+              fontSize: '1.875rem',
+              background: 'none',
+              border: 'none',
+              color: 'white',
+              cursor: 'pointer',
+              transition: 'transform 0.3s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           >
             ⚙️
           </button>
@@ -301,19 +352,54 @@ export default function GroupChatMock() {
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
-          <p className="font-medium">{error}</p>
+        <div style={{
+          background: 'linear-gradient(135deg, #FFE5E5 0%, #FFD5D5 100%)',
+          borderLeft: '4px solid #D4756B',
+          color: '#8B3A3A',
+          padding: '1rem'
+        }}>
+          <p style={{ fontWeight: '600', margin: 0 }}>{error}</p>
         </div>
       )}
 
       {/* Settings Panel */}
       {showSettings && (
-        <div className="bg-purple-50 p-4 border-b-2 border-purple-200">
-          <div className="max-w-6xl mx-auto">
-            <h3 className="font-bold text-lg mb-3">Group Settings ⚙️</h3>
+        <div style={{
+          background: 'linear-gradient(135deg, #F5EBE0 0%, #E3D5CA 100%)',
+          padding: '1rem',
+          borderBottom: '2px solid #D5BDAF'
+        }}>
+          <div style={{ maxWidth: '1536px', margin: '0 auto' }}>
+            <h3 style={{
+              fontWeight: '700',
+              fontSize: '1.125rem',
+              marginBottom: '0.75rem',
+              color: '#8B7355'
+            }}>
+              Group Settings ⚙️
+            </h3>
             <button
               onClick={() => setShowForbiddenModal(true)}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all text-sm"
+              style={{
+                padding: '0.5rem 1rem',
+                background: 'linear-gradient(135deg, #D4756B 0%, #B85F56 100%)',
+                color: 'white',
+                borderRadius: '12px',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 2px 8px rgba(212, 117, 107, 0.2)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(212, 117, 107, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(212, 117, 107, 0.2)';
+              }}
             >
               🚫 Forbidden Words ({forbiddenWords.length})
             </button>
@@ -321,11 +407,24 @@ export default function GroupChatMock() {
         </div>
       )}
 
-      <div className="flex-1 flex overflow-hidden">
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         {/* Members Sidebar */}
-        <div className="w-64 bg-white border-r-2 border-gray-200 overflow-y-auto p-4">
-          <h3 className="font-bold text-lg mb-4 text-gray-800">Members ({members.length})</h3>
-          <div className="space-y-2">
+        <div style={{
+          width: '16rem',
+          background: 'linear-gradient(180deg, #FAF6F1 0%, #F5EBE0 100%)',
+          borderRight: '2px solid #E3D5CA',
+          overflowY: 'auto',
+          padding: '1rem'
+        }}>
+          <h3 style={{
+            fontWeight: '700',
+            fontSize: '1.125rem',
+            marginBottom: '1rem',
+            color: '#8B7355'
+          }}>
+            Members ({members.length})
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {members.map((member) => {
               // ใช้ avatarId จาก groupInfo ถ้ามี ไม่งั้นใช้ default
               const memberInfo = groupInfo?.members?.find(m => m.user.id === parseInt(member.id));
@@ -334,21 +433,55 @@ export default function GroupChatMock() {
               return (
                 <div
                   key={member.id}
-                  className="p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-all group"
+                  style={{
+                    padding: '0.75rem',
+                    background: 'rgba(255, 255, 255, 0.6)',
+                    backdropFilter: 'blur(10px)',
+                    borderRadius: '12px',
+                    transition: 'all 0.3s ease',
+                    border: '1px solid rgba(213, 189, 175, 0.3)'
+                  }}
+                  className="member-card"
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="text-2xl">{AVATARS[avatarId - 1]}</div>
-                    <div className="flex-1">
-                      <p className="font-bold text-gray-800">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ fontSize: '1.5rem' }}>{AVATARS[avatarId - 1]}</div>
+                    <div style={{ flex: 1 }}>
+                      <p style={{
+                        fontWeight: '700',
+                        color: '#8B7355',
+                        margin: 0,
+                        fontSize: '0.95rem'
+                      }}>
                         {nicknames[member.id] || member.username}
                       </p>
                       {nicknames[member.id] && (
-                        <p className="text-xs text-gray-500">({member.username})</p>
+                        <p style={{
+                          fontSize: '0.75rem',
+                          color: '#C9A882',
+                          margin: '0.125rem 0 0 0'
+                        }}>
+                          ({member.username})
+                        </p>
                       )}
                       {tags[member.id] && tags[member.id].length > 0 && (
-                        <div className="flex gap-1 mt-1 flex-wrap">
+                        <div style={{
+                          display: 'flex',
+                          gap: '0.25rem',
+                          marginTop: '0.25rem',
+                          flexWrap: 'wrap'
+                        }}>
                           {tags[member.id].map((tag, i) => (
-                            <span key={i} className="text-xs bg-pink-200 text-pink-800 px-2 py-0.5 rounded-full">
+                            <span
+                              key={i}
+                              style={{
+                                fontSize: '0.75rem',
+                                background: 'linear-gradient(135deg, #E8C4B8 0%, #D4A574 100%)',
+                                color: '#8B7355',
+                                padding: '0.125rem 0.5rem',
+                                borderRadius: '9999px',
+                                fontWeight: '600'
+                              }}
+                            >
                               {tag}
                             </span>
                           ))}
@@ -357,13 +490,31 @@ export default function GroupChatMock() {
                     </div>
                   </div>
                   {member.username !== username && (
-                    <div className="mt-2 hidden group-hover:flex gap-1">
+                    <div
+                      className="member-buttons"
+                      style={{
+                        marginTop: '0.5rem',
+                        display: 'none',
+                        gap: '0.25rem'
+                      }}
+                    >
                       <button
                         onClick={() => {
                           setSelectedMember(member);
                           setShowNicknameModal(true);
                         }}
-                        className="text-xs px-2 py-1 bg-purple-500 text-white rounded hover:bg-purple-600"
+                        style={{
+                          fontSize: '0.75rem',
+                          padding: '0.25rem 0.5rem',
+                          background: 'linear-gradient(135deg, #C9A882 0%, #8B7355 100%)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                       >
                         ✏️ Nickname
                       </button>
@@ -372,7 +523,18 @@ export default function GroupChatMock() {
                           setSelectedMember(member);
                           setShowTagModal(true);
                         }}
-                        className="text-xs px-2 py-1 bg-pink-500 text-white rounded hover:bg-pink-600"
+                        style={{
+                          fontSize: '0.75rem',
+                          padding: '0.25rem 0.5rem',
+                          background: 'linear-gradient(135deg, #D4A574 0%, #C9A882 100%)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                       >
                         🏷️ Tag
                       </button>
@@ -385,12 +547,28 @@ export default function GroupChatMock() {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col bg-gray-50">
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          background: 'linear-gradient(180deg, #FAF6F1 0%, #F5EBE0 100%)'
+        }}>
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem'
+          }}>
             {messages.length === 0 ? (
-              <div className="text-center text-gray-400 mt-12">
-                <p className="text-6xl mb-4">💬</p>
+              <div style={{
+                textAlign: 'center',
+                color: '#C9A882',
+                marginTop: '3rem'
+              }}>
+                <p style={{ fontSize: '3.75rem', marginBottom: '1rem' }}>💬</p>
                 <p>No messages yet. Start the conversation!</p>
               </div>
             ) : (
@@ -399,16 +577,45 @@ export default function GroupChatMock() {
                 return (
                   <div
                     key={index}
-                    className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                    style={{
+                      display: 'flex',
+                      justifyContent: isMe ? 'flex-end' : 'flex-start'
+                    }}
                   >
-                    <div className={`max-w-md ${isMe ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-white text-gray-800'} rounded-2xl p-3 shadow-md`}>
+                    <div style={{
+                      maxWidth: '28rem',
+                      background: isMe 
+                        ? 'linear-gradient(135deg, #C9A882 0%, #8B7355 100%)'
+                        : 'rgba(255, 255, 255, 0.9)',
+                      backdropFilter: 'blur(10px)',
+                      color: isMe ? 'white' : '#4A4A48',
+                      borderRadius: '16px',
+                      padding: '0.75rem',
+                      boxShadow: isMe
+                        ? '0 4px 12px rgba(139, 115, 85, 0.2)'
+                        : '0 4px 12px rgba(139, 115, 85, 0.1)',
+                      border: isMe ? 'none' : '1px solid rgba(213, 189, 175, 0.3)'
+                    }}>
                       {!isMe && (
-                        <p className="text-xs font-bold mb-1 opacity-75">
+                        <p style={{
+                          fontSize: '0.75rem',
+                          fontWeight: '700',
+                          marginBottom: '0.25rem',
+                          opacity: 0.75,
+                          color: '#8B7355',
+                          margin: '0 0 0.25rem 0'
+                        }}>
                           {getUserDisplayName(msg.sender)}
                         </p>
                       )}
-                      <p className="break-words">{msg.text}</p>
-                      <p className={`text-xs mt-1 ${isMe ? 'opacity-75' : 'text-gray-500'}`}>
+                      <p style={{ wordBreak: 'break-word', margin: 0 }}>{msg.text}</p>
+                      <p style={{
+                        fontSize: '0.75rem',
+                        marginTop: '0.25rem',
+                        opacity: 0.75,
+                        color: isMe ? 'white' : '#8B7355',
+                        margin: '0.25rem 0 0 0'
+                      }}>
                         {new Date(msg.ts).toLocaleTimeString()}
                       </p>
                     </div>
@@ -420,21 +627,67 @@ export default function GroupChatMock() {
           </div>
 
           {/* Input Area */}
-          <div className="bg-white border-t-2 border-gray-200 p-4">
-            <div className="max-w-4xl mx-auto flex gap-2">
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(10px)',
+            borderTop: '2px solid #E3D5CA',
+            padding: '1rem'
+          }}>
+            <div style={{
+              maxWidth: '64rem',
+              margin: '0 auto',
+              display: 'flex',
+              gap: '0.5rem'
+            }}>
               <input
                 type="text"
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Type a message..."
-                className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                className="input-field"
+                style={{
+                  flex: 1,
+                  padding: '0.75rem 1rem',
+                  border: '2px solid #E3D5CA',
+                  borderRadius: '12px',
+                  outline: 'none',
+                  transition: 'border-color 0.3s ease',
+                  background: 'white'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#C9A882'}
+                onBlur={(e) => e.target.style.borderColor = '#E3D5CA'}
                 disabled={!connected}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={!connected || !messageInput.trim()}
-                className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: (!connected || !messageInput.trim())
+                    ? 'linear-gradient(135deg, #D5BDAF 0%, #C9A882 100%)'
+                    : 'linear-gradient(135deg, #C9A882 0%, #8B7355 100%)',
+                  color: 'white',
+                  fontWeight: '700',
+                  borderRadius: '12px',
+                  border: 'none',
+                  cursor: (!connected || !messageInput.trim()) ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.3s ease',
+                  opacity: (!connected || !messageInput.trim()) ? 0.5 : 1,
+                  boxShadow: '0 4px 12px rgba(139, 115, 85, 0.2)'
+                }}
+                onMouseEnter={(e) => {
+                  if (connected && messageInput.trim()) {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(139, 115, 85, 0.3)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (connected && messageInput.trim()) {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 115, 85, 0.2)';
+                  }
+                }}
               >
                 Send 📤
               </button>
@@ -445,20 +698,73 @@ export default function GroupChatMock() {
 
       {/* Nickname Modal */}
       {showNicknameModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">Set Nickname for {selectedMember?.username}</h3>
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem',
+          zIndex: 50
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '20px',
+            padding: '1.5rem',
+            maxWidth: '28rem',
+            width: '100%',
+            boxShadow: '0 20px 60px rgba(139, 115, 85, 0.3)'
+          }}>
+            <h3 style={{
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              marginBottom: '1rem',
+              color: '#8B7355'
+            }}>
+              Set Nickname for {selectedMember?.username}
+            </h3>
             <input
               type="text"
               value={newNickname}
               onChange={(e) => setNewNickname(e.target.value)}
               placeholder="Enter nickname..."
-              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none mb-4"
+              className="input-field"
+              style={{
+                width: '100%',
+                padding: '0.75rem 1rem',
+                border: '2px solid #E3D5CA',
+                borderRadius: '12px',
+                marginBottom: '1rem',
+                outline: 'none',
+                transition: 'border-color 0.3s ease'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#C9A882'}
+              onBlur={(e) => e.target.style.borderColor = '#E3D5CA'}
             />
-            <div className="flex gap-2">
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
                 onClick={handleSetNickname}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600"
+                style={{
+                  flex: 1,
+                  padding: '0.75rem 1rem',
+                  background: 'linear-gradient(135deg, #C9A882 0%, #8B7355 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 12px rgba(139, 115, 85, 0.2)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(139, 115, 85, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 115, 85, 0.2)';
+                }}
               >
                 Save
               </button>
@@ -468,7 +774,18 @@ export default function GroupChatMock() {
                   setNewNickname('');
                   setSelectedMember(null);
                 }}
-                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+                style={{
+                  padding: '0.75rem 1rem',
+                  background: 'linear-gradient(135deg, #E3D5CA 0%, #D5BDAF 100%)',
+                  color: '#8B7355',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 Cancel
               </button>
@@ -479,20 +796,73 @@ export default function GroupChatMock() {
 
       {/* Tag Modal */}
       {showTagModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">Add Tag for {selectedMember?.username}</h3>
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem',
+          zIndex: 50
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '20px',
+            padding: '1.5rem',
+            maxWidth: '28rem',
+            width: '100%',
+            boxShadow: '0 20px 60px rgba(139, 115, 85, 0.3)'
+          }}>
+            <h3 style={{
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              marginBottom: '1rem',
+              color: '#8B7355'
+            }}>
+              Add Tag for {selectedMember?.username}
+            </h3>
             <input
               type="text"
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}
               placeholder="Enter tag..."
-              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none mb-4"
+              className="input-field"
+              style={{
+                width: '100%',
+                padding: '0.75rem 1rem',
+                border: '2px solid #E3D5CA',
+                borderRadius: '12px',
+                marginBottom: '1rem',
+                outline: 'none',
+                transition: 'border-color 0.3s ease'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#C9A882'}
+              onBlur={(e) => e.target.style.borderColor = '#E3D5CA'}
             />
-            <div className="flex gap-2">
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
                 onClick={handleAddTag}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600"
+                style={{
+                  flex: 1,
+                  padding: '0.75rem 1rem',
+                  background: 'linear-gradient(135deg, #D4A574 0%, #C9A882 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 12px rgba(212, 165, 116, 0.2)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(212, 165, 116, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(212, 165, 116, 0.2)';
+                }}
               >
                 Add
               </button>
@@ -502,7 +872,18 @@ export default function GroupChatMock() {
                   setNewTag('');
                   setSelectedMember(null);
                 }}
-                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+                style={{
+                  padding: '0.75rem 1rem',
+                  background: 'linear-gradient(135deg, #E3D5CA 0%, #D5BDAF 100%)',
+                  color: '#8B7355',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 Cancel
               </button>
@@ -513,32 +894,117 @@ export default function GroupChatMock() {
 
       {/* Forbidden Words Modal */}
       {showForbiddenModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">Forbidden Words 🚫</h3>
-            <div className="mb-4">
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem',
+          zIndex: 50
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '20px',
+            padding: '1.5rem',
+            maxWidth: '28rem',
+            width: '100%',
+            maxHeight: '80vh',
+            overflowY: 'auto',
+            boxShadow: '0 20px 60px rgba(139, 115, 85, 0.3)'
+          }}>
+            <h3 style={{
+              fontSize: '1.25rem',
+              fontWeight: '700',
+              marginBottom: '1rem',
+              color: '#8B7355'
+            }}>
+              Forbidden Words 🚫
+            </h3>
+            <div style={{ marginBottom: '1rem' }}>
               <input
                 type="text"
                 value={newForbiddenWord}
                 onChange={(e) => setNewForbiddenWord(e.target.value)}
                 placeholder="Add forbidden word..."
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none mb-2"
+                className="input-field"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  border: '2px solid #E3D5CA',
+                  borderRadius: '12px',
+                  marginBottom: '0.5rem',
+                  outline: 'none',
+                  transition: 'border-color 0.3s ease'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#C9A882'}
+                onBlur={(e) => e.target.style.borderColor = '#E3D5CA'}
               />
               <button
                 onClick={handleAddForbiddenWord}
-                className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  background: 'linear-gradient(135deg, #D4756B 0%, #B85F56 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 12px rgba(212, 117, 107, 0.2)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(212, 117, 107, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(212, 117, 107, 0.2)';
+                }}
               >
                 Add Word
               </button>
             </div>
             {forbiddenWords.length > 0 ? (
-              <div className="space-y-2 mb-4">
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+                marginBottom: '1rem'
+              }}>
                 {forbiddenWords.map((word, i) => (
-                  <div key={i} className="flex justify-between items-center p-2 bg-red-50 rounded">
-                    <span className="font-mono">{word}</span>
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '0.5rem',
+                      background: 'linear-gradient(135deg, #FFE5E5 0%, #FFD5D5 100%)',
+                      borderRadius: '8px',
+                      border: '1px solid #FFB5B5'
+                    }}
+                  >
+                    <span style={{
+                      fontFamily: 'monospace',
+                      color: '#8B3A3A',
+                      fontWeight: '600'
+                    }}>
+                      {word}
+                    </span>
                     <button
                       onClick={() => handleRemoveForbiddenWord(word)}
-                      className="text-red-600 hover:text-red-800"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '1rem',
+                        transition: 'transform 0.3s ease'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
+                      onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                     >
                       ❌
                     </button>
@@ -546,20 +1012,49 @@ export default function GroupChatMock() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm mb-4">No forbidden words yet</p>
+              <p style={{
+                color: '#C9A882',
+                fontSize: '0.875rem',
+                marginBottom: '1rem',
+                textAlign: 'center'
+              }}>
+                No forbidden words yet
+              </p>
             )}
             <button
               onClick={() => {
                 setShowForbiddenModal(false);
                 setNewForbiddenWord('');
               }}
-              className="w-full px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+              style={{
+                width: '100%',
+                padding: '0.75rem 1rem',
+                background: 'linear-gradient(135deg, #E3D5CA 0%, #D5BDAF 100%)',
+                color: '#8B7355',
+                border: 'none',
+                borderRadius: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
             >
               Close
             </button>
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        .member-card:hover .member-buttons {
+          display: flex !important;
+        }
+        .member-card:hover {
+          background: rgba(255, 255, 255, 0.9) !important;
+          box-shadow: 0 4px 12px rgba(139, 115, 85, 0.15) !important;
+        }
+      `}</style>
     </div>
   );
 }
