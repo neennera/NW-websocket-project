@@ -103,17 +103,23 @@ router.put('/nicknames', authenticateToken, async (req, res) => {
         const userIdSetter = req.user.userId;
         const { groupId, targetUserId, nickname } = req.body;
 
+        console.log('PUT /nicknames request:', { userIdSetter, groupId, targetUserId, nickname });
+
         if (!await isUserMember(userIdSetter, groupId)) {
+            console.log('❌ Setter not a member:', userIdSetter, groupId);
             return res.status(403).json({ error: "You are not a member of this group." });
         }
 
         if (!await isUserMember(targetUserId, groupId)) {
+            console.log('❌ Target not a member:', targetUserId, groupId);
             return res.status(400).json({ error: "Target user is not in this group." });
         }
 
         if (userIdSetter === targetUserId) {
             return res.status(400).json({ error: "You cannot set a nickname for yourself." });
         }
+
+        console.log('✅ All checks passed, creating nickname...');
 
         // Create or update (Upsert)
         const newNickname = await prisma.nickname.upsert({

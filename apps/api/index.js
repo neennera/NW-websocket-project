@@ -11,6 +11,22 @@ const { initializeWebSocket } = require('./src/ws/handler');
 const routes = require('./src/routes');
 
 const app = express();
+
+// CORS middleware - ต้องอยู่ก่อน express.json()
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
+
 app.use(express.json());
 
 // Mount routes
@@ -22,11 +38,11 @@ const profileRoutes = require('./src/routes/profile.routes.js');
 const groupRoutes = require('./src/routes/group.routes.js');
 const featureRoutes = require('./src/routes/feature.routes.js');
 
-// Use routes
-app.use('/auth', authRoutes);       // /auth/...
-app.use('/profile', profileRoutes); // /profile/...
-app.use('/groups', groupRoutes);    // /groups/...
-app.use('/', featureRoutes);        // /tags, /nicknames
+// Use routes with /api prefix
+app.use('/api/auth', authRoutes);       // /api/auth/...
+app.use('/api/profile', profileRoutes); // /api/profile/...
+app.use('/api/groups', groupRoutes);    // /api/groups/...
+app.use('/api', featureRoutes);         // /api/tags, /api/nicknames
 
 // Create HTTP server for WebSocket upgrade
 const server = http.createServer(app);

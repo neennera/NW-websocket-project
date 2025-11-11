@@ -63,8 +63,12 @@ async function handleMessage(ws, msg) {
   } else if (type === 'message') {
     const { roomId, text, sender } = msg;
 
+    console.log('Received message:', { roomId, text, sender });
+
     // Save message to database
     const savedMessage = await saveMessage(roomId, sender, text);
+
+    console.log('Saved message:', savedMessage);
 
     if (savedMessage) {
       // Broadcast message to room
@@ -77,6 +81,7 @@ async function handleMessage(ws, msg) {
         wsConnections
       );
     } else {
+      console.error('Failed to save message');
       ws.send(
         JSON.stringify({ type: 'error', message: 'Failed to save message' })
       );
