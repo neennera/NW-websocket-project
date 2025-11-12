@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import ProfileCard from '../../components/ProfileCard';
 import CreateGroupModal from '../../components/CreateGroupModal';
 import SearchUserModal from '../../components/SearchUserModal';
+import SearchGroupModal from '../../components/SearchGroupModal';
 import ConversationList from '../../components/ConversationList';
 import ConversationStats from '../../components/ConversationStats';
 
@@ -17,6 +18,7 @@ export default function Home() {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showStartDM, setShowStartDM] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
+  const [showSearchGroup, setShowSearchGroup] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState(null);
   
   // Form states
@@ -403,6 +405,31 @@ export default function Home() {
                 </h2>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button
+                    onClick={() => setShowSearchGroup(true)}
+                    style={{
+                      padding: '0.65rem 1.25rem',
+                      background: 'linear-gradient(135deg, #A8B89E 0%, #8B9E83 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 2px 8px rgba(168, 184, 158, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(168, 184, 158, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(168, 184, 158, 0.3)';
+                    }}
+                  >
+                    🔍 Join Group
+                  </button>
+                  <button
                     onClick={() => setShowCreateGroup(true)}
                     style={{
                       padding: '0.65rem 1.25rem',
@@ -425,7 +452,7 @@ export default function Home() {
                       e.currentTarget.style.boxShadow = '0 2px 8px rgba(139, 115, 85, 0.3)';
                     }}
                   >
-                    + Group
+                    + Create Group
                   </button>
                   <button
                     onClick={() => setShowStartDM(true)}
@@ -439,18 +466,18 @@ export default function Home() {
                       fontWeight: '600',
                       cursor: 'pointer',
                       transition: 'all 0.3s ease',
-                      boxShadow: '0 2px 8px rgba(232, 196, 184, 0.3)'
+                      boxShadow: '0 2px 8px rgba(139, 115, 85, 0.3)'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(232, 196, 184, 0.4)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 115, 85, 0.4)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'translateY(0)';
                       e.currentTarget.style.boxShadow = '0 2px 8px rgba(232, 196, 184, 0.3)';
                     }}
                   >
-                    + DM
+                    + Start DM
                   </button>
                 </div>
               </div>
@@ -506,6 +533,15 @@ export default function Home() {
                 tipText="💡 Search for a friend to add to the group"
                 primaryColor="#A8B89E"
                 secondaryColor="#8B9E7D"
+              />
+
+              <SearchGroupModal
+                show={showSearchGroup}
+                onClose={() => setShowSearchGroup(false)}
+                onJoinSuccess={() => {
+                  fetchGroups();
+                  setShowSearchGroup(false);
+                }}
               />
 
               {/* Conversation List */}

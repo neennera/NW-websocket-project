@@ -44,26 +44,9 @@ export default function ProfileCard({ user, onAvatarUpdate }) {
             <div style={{ 
               fontSize: '5rem', 
               marginBottom: '0.5rem',
-              background: 'linear-gradient(135deg, #F5EBE0 0%, #E3D5CA 100%)',
-              borderRadius: '20px',
               padding: '1rem',
-              boxShadow: '0 4px 16px rgba(201, 168, 130, 0.2)'
             }}>
               {user.avatar_id ? AVATARS[user.avatar_id - 1] : AVATARS[0]}
-            </div>
-            <div style={{
-              position: 'absolute',
-              bottom: '0',
-              right: '0',
-              background: 'linear-gradient(135deg, #C9A882 0%, #D4A574 100%)',
-              color: 'white',
-              fontSize: '0.75rem',
-              fontWeight: 'bold',
-              padding: '0.25rem 0.75rem',
-              borderRadius: '12px',
-              boxShadow: '0 2px 8px rgba(201, 168, 130, 0.4)'
-            }}>
-              Selected
             </div>
           </div>
           <button

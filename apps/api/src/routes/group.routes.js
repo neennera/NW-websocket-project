@@ -22,6 +22,52 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 });
 
+// GET /groups/search - Search for public groups to join
+router.get('/search', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const { name } = req.query;
+
+        // Find all public groups (not private chats)
+        const whereClause = {
+            isPrivateChat: false,
+        };
+
+        // Add name filter if provided
+        if (name) {
+            whereClause.name = {
+                contains: name,
+                mode: 'insensitive' // Case-insensitive search
+            };
+        }
+
+        const publicGroups = await prisma.group.findMany({
+            where: whereClause,
+            include: {
+                members: {
+                    include: {
+                        user: {
+                            select: { id: true, username: true, avatarId: true }
+                        }
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        // Add 'isMember' flag for each group
+        const groupsWithMemberStatus = publicGroups.map(group => ({
+            ...group,
+            isMember: group.members.some(m => m.userId === userId),
+            memberCount: group.members.length
+        }));
+
+        res.json(groupsWithMemberStatus);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // GET /groups/:id
 router.get('/:id', authenticateToken, async (req, res) => {
     try {
