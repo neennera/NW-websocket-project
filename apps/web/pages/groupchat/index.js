@@ -271,6 +271,40 @@ export default function GroupChatMock() {
     router.push('/home');
   };
 
+  const handleLeaveGroup = async () => {
+    if (
+      !confirm(
+        'Are you sure you want to leave this group? This action cannot be undone.'
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(
+        `http://localhost:3001/api/groups/${roomId}/leave`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (res.ok) {
+        disconnect();
+        router.push('/home');
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Failed to leave group');
+      }
+    } catch (err) {
+      console.error('Error leaving group:', err);
+      setError('Failed to leave group');
+    }
+  };
+
   const getUserDisplayName = (username) => {
     const member = members.find((m) => m.username === username);
     if (!member) return username;
@@ -419,33 +453,64 @@ export default function GroupChatMock() {
             >
               Group Settings ⚙️
             </h3>
-            <button
-              onClick={() => setShowForbiddenModal(true)}
-              style={{
-                padding: '0.5rem 1rem',
-                background: 'linear-gradient(135deg, #D4756B 0%, #B85F56 100%)',
-                color: 'white',
-                borderRadius: '12px',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 2px 8px rgba(212, 117, 107, 0.2)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow =
-                  '0 4px 12px rgba(212, 117, 107, 0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow =
-                  '0 2px 8px rgba(212, 117, 107, 0.2)';
-              }}
-            >
-              🚫 Forbidden Words ({forbiddenWords.length})
-            </button>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setShowForbiddenModal(true)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background:
+                    'linear-gradient(135deg, #D4756B 0%, #B85F56 100%)',
+                  color: 'white',
+                  borderRadius: '12px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 2px 8px rgba(212, 117, 107, 0.2)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow =
+                    '0 4px 12px rgba(212, 117, 107, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow =
+                    '0 2px 8px rgba(212, 117, 107, 0.2)';
+                }}
+              >
+                🚫 Forbidden Words ({forbiddenWords.length})
+              </button>
+              <button
+                onClick={handleLeaveGroup}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background:
+                    'linear-gradient(135deg, #DC143C 0%, #B22222 100%)',
+                  color: 'white',
+                  borderRadius: '12px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 2px 8px rgba(220, 20, 60, 0.2)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow =
+                    '0 4px 12px rgba(220, 20, 60, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow =
+                    '0 2px 8px rgba(220, 20, 60, 0.2)';
+                }}
+              >
+                🚪 Leave Group
+              </button>
+            </div>
           </div>
         </div>
       )}
