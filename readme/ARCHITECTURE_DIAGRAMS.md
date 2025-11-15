@@ -421,7 +421,7 @@ Alice opens http://localhost:3000
 ├─ Enters username: "alice"
 ├─ Clicks: "Join (Group)" on ABgroup (roomId=1)
 │
-└─ Navigates to: /groupchat/mock?roomId=1&username=alice
+└─ Navigates to: /groupchat?roomId=1&username=alice
 
 Time 00:01 - Alice joins
 

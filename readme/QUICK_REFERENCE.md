@@ -45,7 +45,7 @@ NW-project/
 │       ├── pages/
 │       │   ├── index.js              # Home page
 │       │   ├── chat/mock.js          # 1:1 chat
-│       │   └── groupchat/mock.js     # Group chat
+│       │   └── groupchat.js     # Group chat
 │       ├── lib/
 │       │   └── useWebSocket.js       # WebSocket hook
 │       └── package.json

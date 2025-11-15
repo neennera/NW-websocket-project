@@ -33,7 +33,7 @@ export default function Home() {
                 <div className="space-x-2">
                   <Link
                     href={{
-                      pathname: '/groupchat/mock',
+                      pathname: '/groupchat',
                       query: { roomId: g.id, username },
                     }}
                   >

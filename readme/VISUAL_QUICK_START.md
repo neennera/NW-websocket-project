@@ -65,7 +65,7 @@ Home Page (http://localhost:3000)
 ├─ Groups section
 │  └─ Find: "ABgroup"
 │     └─ Click: "Join (Group)"
-│        └─ Redirects to: /groupchat/mock?roomId=1&username=A
+│        └─ Redirects to: /groupchat?roomId=1&username=A
 │
 └─ Chat page loads
    ├─ Shows: "🟢 Connected"
@@ -303,7 +303,7 @@ Keep-Alive:
 ├─ View available rooms
 └─ Choose: Group chat OR 1:1 chat
 
-/groupchat/mock?roomId=1&username=A
+/groupchat?roomId=1&username=A
 ├─ Group chat interface
 ├─ Show members
 ├─ Display messages

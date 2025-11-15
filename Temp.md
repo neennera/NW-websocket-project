@@ -16,7 +16,7 @@ What I did (files created)
   - `pages/_app.js` — app wrapper + global CSS import.
   - `pages/index.js` — `/home` page (shows servers, groups, username input, links to mocks).
   - `pages/chat/mock.js` — `/chat/mock` 1:1 chat mock UI, connects to `ws://localhost:3001/ws`.
-  - `pages/groupchat/mock.js` — `/groupchat/mock` multi-user chat mock UI, similar to 1:1 but intended for many users.
+  - `pages/groupchat.js` — `/groupchat` multi-user chat mock UI, similar to 1:1 but intended for many users.
   - `styles/globals.css`, `tailwind.config.js`, `postcss.config.js` — minimal Tailwind setup.
 
 What works now (POC)
@@ -80,7 +80,7 @@ Files changed/created (quick list)
 - docker-compose.yml
 - README.md
 - apps/api/{package.json,index.js,.env,prisma/schema.prisma}
-- apps/web/{package.json,pages/\_app.js,pages/index.js,pages/chat/mock.js,pages/groupchat/mock.js,styles/globals.css,tailwind.config.js,postcss.config.js}
+- apps/web/{package.json,pages/\_app.js,pages/index.js,pages/chat/mock.js,pages/groupchat.js,styles/globals.css,tailwind.config.js,postcss.config.js}
 - .prettierrc
 
 What's next I can do (pick one; I can proceed automatically)
@@ -108,7 +108,7 @@ Files changed/created (quick list)
 - docker-compose.yml
 - README.md
 - apps/api/{package.json,index.js,.env,prisma/schema.prisma}
-- apps/web/{package.json,pages/\_app.js,pages/index.js,pages/chat/mock.js,pages/groupchat/mock.js,styles/globals.css,tailwind.config.js,postcss.config.js}
+- apps/web/{package.json,pages/\_app.js,pages/index.js,pages/chat/mock.js,pages/groupchat.js,styles/globals.css,tailwind.config.js,postcss.config.js}
 - .prettierrc
 
 What's next I can do (pick one; I can proceed automatically)

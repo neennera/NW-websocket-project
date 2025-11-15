@@ -37,7 +37,7 @@ npm run dev
 ┌──────────────────────────────────────┐
 │       React Component                │
 │  (pages/chat/mock.js or              │
-│   pages/groupchat/mock.js)           │
+│   pages/groupchat.js)           │
 └──────────────┬───────────────────────┘
                │
                │ Import hook
@@ -120,7 +120,7 @@ export default function ChatPage() {
 
 ## Complete Example: Group Chat Page
 
-File: `apps/web/pages/groupchat/mock.js`
+File: `apps/web/pages/groupchat.js`
 
 ```javascript
 import { useRouter } from 'next/router';
@@ -433,7 +433,7 @@ export default function Home() {
                 <div>{g.name}</div>
                 <Link
                   href={{
-                    pathname: '/groupchat/mock',
+                    pathname: '/groupchat',
                     query: { roomId: g.id, username },
                   }}
                 >
