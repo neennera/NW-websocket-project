@@ -31,10 +31,23 @@ export default function GroupChatMock() {
   const [newForbiddenWord, setNewForbiddenWord] = useState('');
   const [showSettings, setShowSettings] = useState(false);
 
+  const handleWebSocketMessage = (data) => {
+    if (data.type === 'forbidden_word_added') {
+      setForbiddenWords((prev) => {
+        // Avoid duplicates
+        if (prev.includes(data.word)) return prev;
+        return [...prev, data.word];
+      });
+    } else if (data.type === 'forbidden_word_removed') {
+      setForbiddenWords((prev) => prev.filter((w) => w !== data.word));
+    }
+  };
+
   const { connected, messages, members, sendMessage, disconnect } =
     useWebSocket({
       roomId: roomId ? parseInt(roomId, 10) : null,
       username,
+      onMessage: handleWebSocketMessage,
     });
 
   // Load user from localStorage

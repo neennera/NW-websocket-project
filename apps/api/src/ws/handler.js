@@ -14,6 +14,11 @@ const {
 // Map to store WebSocket connections by clientId
 const wsConnections = new Map();
 
+// Export wsConnections for use in routes
+function getWsConnections() {
+  return wsConnections;
+}
+
 async function handleMessage(ws, msg) {
   const { type } = msg;
 
@@ -146,4 +151,4 @@ function initializeWebSocket(server) {
   return wss;
 }
 
-module.exports = { initializeWebSocket };
+module.exports = { initializeWebSocket, getWsConnections };
