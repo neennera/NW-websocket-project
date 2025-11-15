@@ -107,18 +107,29 @@ async function getRoomInfo(roomId) {
 
 async function saveMessage(roomId, sender, text) {
   try {
+    // Find user by username to get userId
+    const user = await prisma.user.findUnique({
+      where: { username: sender },
+    });
+
+    if (!user) {
+      console.error('User not found:', sender);
+      return null;
+    }
+
     // roomId is now numeric, use it directly as groupId
     const message = await prisma.message.create({
       data: {
         content: text,
         groupId: roomId,
-        userId: 1, // TODO: Get actual userId from auth context
+        userId: user.id,
       },
     });
     return {
       id: message.id,
       sender,
       text: message.content,
+      created_at: message.createdAt,
       ts: message.createdAt.getTime(),
     };
   } catch (err) {

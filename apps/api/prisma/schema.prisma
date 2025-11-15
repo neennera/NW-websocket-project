@@ -42,6 +42,11 @@ model User {
   
   // Forbidden words added by this User
   forbiddenWordsAdded ForbiddenWord[]
+  
+  // Join requests sent by this User
+  joinRequestsSent JoinRequest[] @relation("RequestSender")
+  // Join requests handled by this User (approved/rejected)
+  joinRequestsHandled JoinRequest[] @relation("RequestHandler")
 }
 
 // --- UserTag table (Feature 3 - private tags) --- //
@@ -75,6 +80,7 @@ model Group {
   nicknames       Nickname[]
   messages        Message[]
   forbiddenWords  ForbiddenWord[]
+  joinRequests    JoinRequest[]
 }
 
 // --- GroupMember table (who is in which room) --- //
@@ -140,4 +146,33 @@ model ForbiddenWord {
   // Forbidden words must be unique per room
   @@unique([word, groupId])
   // groupId = NULL means Global Forbidden Word (if used)
+}
+
+// --- JoinRequest table (feature - request-based group joining) --- //
+model JoinRequest {
+  id        Int      @id @default(autoincrement())
+  
+  // The user who wants to join
+  userId    Int
+  user      User     @relation("RequestSender", fields: [userId], references: [id])
+  
+  // The group they want to join
+  groupId   Int
+  group     Group    @relation(fields: [groupId], references: [id])
+  
+  // Request status: PENDING, APPROVED, REJECTED
+  status    String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  
+  // Optional message from requester
+  message   String?
+  
+  // Who handled the request (approved/rejected)
+  handledBy Int?
+  handler   User?    @relation("RequestHandler", fields: [handledBy], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Prevent duplicate pending requests
+  @@unique([userId, groupId, status])
 }

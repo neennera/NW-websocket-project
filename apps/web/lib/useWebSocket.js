@@ -15,6 +15,14 @@ export function useWebSocket({ roomId, username, onMessage, onError }) {
   const [members, setMembers] = useState([]);
   const [error, setError] = useState(null);
   const wsRef = useRef(null);
+  const onMessageRef = useRef(onMessage);
+  const onErrorRef = useRef(onError);
+
+  // Update refs when callbacks change
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+    onErrorRef.current = onError;
+  }, [onMessage, onError]);
 
   // Initialize WebSocket connection
   useEffect(() => {
@@ -23,12 +31,25 @@ export function useWebSocket({ roomId, username, onMessage, onError }) {
 
     if (!roomId || !username) return;
 
+    // ป้องกัน duplicate connection
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      console.log('WebSocket already connected, skipping...');
+      return;
+    }
+
+    let isMounted = true; // ตรวจสอบว่า component ยัง mount อยู่หรือไม่
+
     try {
       const socket = new WebSocket(wsUrl);
       wsRef.current = socket;
 
       // join websocket
       socket.addEventListener('open', () => {
+        if (!isMounted) {
+          socket.close();
+          return;
+        }
+        console.log('✅ WebSocket connected');
         setConnected(true);
         setError(null);
         socket.send(JSON.stringify({ type: 'join', roomId, username }));
@@ -70,11 +91,11 @@ export function useWebSocket({ roomId, username, onMessage, onError }) {
           } else if (data.type === 'error') {
             console.error('WebSocket error:', data.message);
             setError(data.message);
-            if (onError) onError(data.message);
+            if (onErrorRef.current) onErrorRef.current(data.message);
           }
 
           // Call custom message handler if provided
-          if (onMessage) onMessage(data);
+          if (onMessageRef.current) onMessageRef.current(data);
         } catch (err) {
           console.error('Failed to parse message:', err);
           setError('Failed to parse message');
@@ -84,7 +105,7 @@ export function useWebSocket({ roomId, username, onMessage, onError }) {
       socket.addEventListener('error', (err) => {
         console.error('WebSocket error:', err);
         setError('WebSocket connection error');
-        if (onError) onError(err);
+        if (onErrorRef.current) onErrorRef.current(err);
       });
 
       socket.addEventListener('close', () => {
@@ -93,21 +114,26 @@ export function useWebSocket({ roomId, username, onMessage, onError }) {
     } catch (err) {
       console.error('Failed to initialize WebSocket:', err);
       setError('Failed to initialize connection');
-      if (onError) onError(err);
+      if (onErrorRef.current) onErrorRef.current(err);
     }
 
     // Cleanup on unmount or when roomId/username changes
     return () => {
+      isMounted = false;
       if (wsRef.current) {
+        console.log('🔌 Disconnecting WebSocket...');
         try {
-          wsRef.current.send(JSON.stringify({ type: 'leave', roomId }));
+          if (wsRef.current.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({ type: 'leave', roomId }));
+          }
           wsRef.current.close();
+          wsRef.current = null;
         } catch (e) {
           console.error('Error closing WebSocket:', e);
         }
       }
     };
-  }, [roomId, username, onMessage, onError]);
+  }, [roomId, username]); // ลบ onMessage, onError ออกจาก dependencies
 
   // Send a text message to the room
   const sendMessage = (text) => {

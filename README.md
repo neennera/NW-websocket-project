@@ -67,7 +67,7 @@ Seeded users (example)
 
 - The provided seed file creates two example users you can use for testing:
 
-  - email: `alice@example.com` | username: `alice` | password: `pass123`
-  - email: `bob@example.com` | username: `bob` | password: `pass123`
+  - email: `userA@example.com` | username: `A` | password: `pass123`
+  - email: `userB@example.com` | username: `B` | password: `pass123`
 
   The seed script hashes the passwords before inserting into the database. Use these credentials in the frontend or API testers to sign in or simulate user actions.
