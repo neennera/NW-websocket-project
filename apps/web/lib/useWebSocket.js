@@ -26,7 +26,9 @@ export function useWebSocket({ roomId, username, onMessage, onError }) {
 
   // Initialize WebSocket connection
   useEffect(() => {
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001/ws';
+    const backendUrl =
+      process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+    const wsUrl = backendUrl.replace('http', 'ws') + '/ws';
     console.log('Connecting to WebSocket:', wsUrl);
 
     if (!roomId || !username) return;

@@ -1,8 +1,9 @@
 // API URL Configuration
-export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-export const WS_URL =
-  process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001/ws';
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+
+export const API_URL = `${BACKEND_URL}/api`;
+export const WS_URL = BACKEND_URL.replace('http', 'ws') + '/ws';
 
 /**
  * Helper function to build API URLs

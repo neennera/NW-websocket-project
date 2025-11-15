@@ -1,4 +1,4 @@
-project name : network
+project name : network-candy-chat
 
 # Quick Deployment Commands
 
@@ -33,10 +33,10 @@ git push -u origin main
 2. **Click**: "New +" → "Web Service"
 3. **Select**: Your GitHub repo
 4. **Configure**:
-   - Name: `websocket-chat-api`
+   - Name: `network-candy-chat`
    - Root Directory: `apps/api`
-   - Build Command: `npm install && npm run build`
-   - Start Command: `npm start`
+   - Build Command: `pnpm install && pnpm run build`
+   - Start Command: `pnpm start`
 5. **Environment Variables**:
    ```
    DATABASE_URL=postgresql://... (from Neon)
@@ -44,7 +44,7 @@ git push -u origin main
    NODE_ENV=production
    ```
 6. **Deploy** → Wait 5-10 minutes
-7. **Copy URL**: `https://websocket-chat-api.onrender.com`
+7. **Copy URL**: `https://network-candy-chat.onrender.com`
 
 ## Step 4: Deploy Frontend (Vercel)
 
@@ -56,8 +56,8 @@ git push -u origin main
    - Root Directory: `apps/web`
 5. **Environment Variables**:
    ```
-   NEXT_PUBLIC_API_URL=https://websocket-chat-api.onrender.com/api
-   NEXT_PUBLIC_WS_URL=wss://websocket-chat-api.onrender.com/ws
+   NEXT_PUBLIC_API_URL=https://network-candy-chat.onrender.com/api
+   NEXT_PUBLIC_WS_URL=wss://network-candy-chat.onrender.com/ws
    ```
    ⚠️ Use `wss://` (secure WebSocket)!
 6. **Deploy** → Wait 2-3 minutes

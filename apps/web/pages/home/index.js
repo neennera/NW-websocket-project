@@ -41,11 +41,16 @@ export default function Home() {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/profile/me', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        }/api/profile/me`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to fetch profile');
@@ -70,11 +75,16 @@ export default function Home() {
   const fetchGroups = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/groups', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        }/api/groups`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to fetch groups');
@@ -90,14 +100,19 @@ export default function Home() {
   const handleAvatarUpdate = async (avatarId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/profile/me', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ avatarId }),
-      });
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        }/api/profile/me`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ avatarId }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to update avatar');
@@ -145,14 +160,19 @@ export default function Home() {
     setCreating(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/groups', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name: newGroupName }),
-      });
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        }/api/groups`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name: newGroupName }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to create group');
@@ -185,7 +205,9 @@ export default function Home() {
         : `username=${encodeURIComponent(searchText.trim())}`;
 
       const response = await fetch(
-        `http://localhost:3001/api/profile/search?${searchParam}`,
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        }/api/profile/search?${searchParam}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -209,14 +231,19 @@ export default function Home() {
     setCreating(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/groups/dm', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ otherUserId: userId }),
-      });
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        }/api/groups/dm`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ otherUserId: userId }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to start DM');
@@ -247,7 +274,9 @@ export default function Home() {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `http://localhost:3001/api/groups/${selectedGroup.id}/members`,
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        }/api/groups/${selectedGroup.id}/members`,
         {
           method: 'POST',
           headers: {

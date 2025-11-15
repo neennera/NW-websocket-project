@@ -74,7 +74,9 @@ export default function GroupChatMock() {
 
         // Fetch group info
         const groupRes = await fetch(
-          `http://localhost:3001/api/groups/${roomId}`,
+          `${
+            process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+          }/api/groups/${roomId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -86,7 +88,9 @@ export default function GroupChatMock() {
 
         // Fetch nicknames for this group
         const nicknamesRes = await fetch(
-          `http://localhost:3001/api/nicknames?groupId=${roomId}`,
+          `${
+            process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+          }/api/nicknames?groupId=${roomId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -101,9 +105,14 @@ export default function GroupChatMock() {
         }
 
         // Fetch tags
-        const tagsRes = await fetch(`http://localhost:3001/api/tags`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const tagsRes = await fetch(
+          `${
+            process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+          }/api/tags`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         if (tagsRes.ok) {
           const tagsData = await tagsRes.json();
           const tagsMap = {};
@@ -116,7 +125,9 @@ export default function GroupChatMock() {
 
         // Fetch forbidden words
         const forbiddenRes = await fetch(
-          `http://localhost:3001/api/groups/${roomId}/forbidden-words`,
+          `${
+            process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+          }/api/groups/${roomId}/forbidden-words`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -146,18 +157,23 @@ export default function GroupChatMock() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3001/api/nicknames`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          targetUserId: parseInt(selectedMember.id), // แปลงเป็น int
-          groupId: parseInt(roomId),
-          nickname: newNickname,
-        }),
-      });
+      const res = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        }/api/nicknames`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            targetUserId: parseInt(selectedMember.id), // แปลงเป็น int
+            groupId: parseInt(roomId),
+            nickname: newNickname,
+          }),
+        }
+      );
 
       if (res.ok) {
         setNicknames({ ...nicknames, [selectedMember.id]: newNickname });
@@ -180,17 +196,22 @@ export default function GroupChatMock() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3001/api/tags`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          targetUserId: parseInt(selectedMember.id), // แปลงเป็น int
-          tagName: newTag,
-        }),
-      });
+      const res = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        }/api/tags`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            targetUserId: parseInt(selectedMember.id), // แปลงเป็น int
+            tagName: newTag,
+          }),
+        }
+      );
 
       if (res.ok) {
         const existingTags = tags[selectedMember.id] || [];
@@ -215,7 +236,9 @@ export default function GroupChatMock() {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(
-        `http://localhost:3001/api/groups/${roomId}/forbidden-words`,
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        }/api/groups/${roomId}/forbidden-words`,
         {
           method: 'POST',
           headers: {
@@ -240,7 +263,9 @@ export default function GroupChatMock() {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(
-        `http://localhost:3001/api/groups/${roomId}/forbidden-words`,
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        }/api/groups/${roomId}/forbidden-words`,
         {
           method: 'DELETE',
           headers: {
@@ -296,7 +321,9 @@ export default function GroupChatMock() {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(
-        `http://localhost:3001/api/groups/${roomId}/leave`,
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        }/api/groups/${roomId}/leave`,
         {
           method: 'DELETE',
           headers: {
