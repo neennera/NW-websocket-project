@@ -2,16 +2,16 @@
 
 /* Japanese Earth Tone Theme Variables */
 :root {
-  --cream: #F5EBE0;
-  --light-beige: #E3D5CA;
-  --medium-beige: #D5BDAF;
-  --warm-brown: #C9A882;
-  --dark-brown: #8B7355;
-  --soft-terracotta: #D4A574;
-  --muted-pink: #E8C4B8;
-  --sage-green: #A8B89E;
-  --warm-white: #FAF6F1;
-  --charcoal: #4A4A48;
+  --cream: #f5ebe0;
+  --light-beige: #e3d5ca;
+  --medium-beige: #d5bdaf;
+  --warm-brown: #c9a882;
+  --dark-brown: #8b7355;
+  --soft-terracotta: #d4a574;
+  --muted-pink: #e8c4b8;
+  --sage-green: #a8b89e;
+  --warm-white: #faf6f1;
+  --charcoal: #4a4a48;
 }
 
 html,
@@ -21,8 +21,10 @@ body,
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic', 'Meiryo', ui-sans-serif, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-  background: linear-gradient(135deg, #F5EBE0 0%, #E3D5CA 50%, #D5BDAF 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN',
+    'Hiragino Sans', 'Yu Gothic', 'Meiryo', ui-sans-serif, system-ui, 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial;
+  background: linear-gradient(135deg, #f5ebe0 0%, #e3d5ca 50%, #d5bdaf 100%);
   color: var(--charcoal);
 }
 
@@ -64,12 +66,16 @@ body {
 }
 
 .input-field::placeholder {
-  color: #9B8B7E;
+  color: #9b8b7e;
 }
 
 .btn-primary {
   width: 100%;
-  background: linear-gradient(135deg, var(--warm-brown) 0%, var(--soft-terracotta) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--warm-brown) 0%,
+    var(--soft-terracotta) 100%
+  );
   color: white;
   font-weight: 600;
   padding: 0.85rem 1.5rem;
@@ -81,7 +87,11 @@ body {
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--dark-brown) 0%, var(--warm-brown) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--dark-brown) 0%,
+    var(--warm-brown) 100%
+  );
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(139, 115, 85, 0.35);
 }
@@ -113,15 +123,24 @@ body {
 
 .avatar-selected {
   border-color: var(--soft-terracotta);
-  background: linear-gradient(135deg, var(--muted-pink) 0%, var(--soft-terracotta) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--muted-pink) 0%,
+    var(--soft-terracotta) 100%
+  );
   box-shadow: 0 0 0 4px rgba(212, 165, 116, 0.25);
   transform: scale(1.05);
 }
 
 /* Gentle Animation */
 @keyframes gentle-float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-5px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 .float-animation {
