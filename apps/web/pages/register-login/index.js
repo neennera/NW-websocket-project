@@ -10,7 +10,7 @@ export default function RegisterLogin() {
     username: '',
     email: '',
     password: '',
-    avatar_id: 1,
+    avatarId: 1, // เปลี่ยนจาก avatar_id เป็น avatarId
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,7 +26,7 @@ export default function RegisterLogin() {
   const handleAvatarSelect = (index) => {
     setFormData({
       ...formData,
-      avatar_id: index + 1,
+      avatarId: index + 1, // เปลี่ยนจาก avatar_id เป็น avatarId
     });
   };
 
@@ -84,7 +84,7 @@ export default function RegisterLogin() {
       username: '',
       email: '',
       password: '',
-      avatar_id: 1,
+      avatarId: 1, // เปลี่ยนจาก avatar_id เป็น avatarId
     });
   };
 

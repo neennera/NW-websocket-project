@@ -29,7 +29,7 @@ router.post('/register', async (req, res) => {
     });
 
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, username: user.username }, // เพิ่ม username ใน token
       process.env.JWT_SECRET
     );
 
@@ -65,7 +65,7 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, username: user.username }, // เพิ่ม username ใน token
       process.env.JWT_SECRET
     );
 
