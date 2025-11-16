@@ -133,7 +133,11 @@ router.post('/', authenticateToken, async (req, res) => {
 router.post('/dm', authenticateToken, async (req, res) => {
   try {
     const selfUserId = req.user.userId;
-    const targetUserId = req.body.otherUserId;
+    const targetUserId = parseInt(req.body.otherUserId); // แปลงเป็น integer
+
+    if (!targetUserId) {
+      return res.status(400).json({ error: 'Invalid user ID.' });
+    }
 
     if (selfUserId === targetUserId) {
       return res.status(400).json({ error: 'Cannot create DM with yourself.' });
@@ -370,7 +374,18 @@ router.delete('/:id/leave', authenticateToken, async (req, res) => {
         .json({ error: 'You are not a member of this group.' });
     }
 
-    // Delete the membership
+    // For DM (Private Chat), delete everything when anyone leaves
+    if (group.isPrivateChat) {
+      // Delete all messages first (due to foreign key constraint)
+      await prisma.message.deleteMany({ where: { groupId } });
+      // Delete all memberships
+      await prisma.groupMember.deleteMany({ where: { groupId } });
+      // Delete the group
+      await prisma.group.delete({ where: { id: groupId } });
+      return res.json({ message: 'Left DM and conversation was deleted.' });
+    }
+
+    // For regular groups, just remove the member
     await prisma.groupMember.delete({
       where: { userId_groupId: { userId, groupId } },
     });
