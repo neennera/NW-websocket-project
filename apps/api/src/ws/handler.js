@@ -40,6 +40,10 @@ async function handleMessage(ws, msg) {
         onlineUsers.set(userId, new Set());
       }
       onlineUsers.get(userId).add(ws.clientId);
+      console.log(
+        `User ${userId} is now online. Total online users:`,
+        onlineUsers.size
+      );
     }
 
     // Check if this is a new join or a refresh
@@ -153,6 +157,10 @@ function initializeWebSocket(server) {
           userClients.delete(clientId);
           if (userClients.size === 0) {
             onlineUsers.delete(ws.userId);
+            console.log(
+              `User ${ws.userId} went offline. Total online users:`,
+              onlineUsers.size
+            );
           }
         }
       }

@@ -109,19 +109,24 @@ export default function Home() {
       const response = await fetch(
         `${
           process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
-        }/api/groups/online-users`,
+        }/api/groups/online-users?t=${Date.now()}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            'Cache-Control': 'no-cache',
+            Pragma: 'no-cache',
           },
         }
       );
+
+      console.log('Online users response status:', response.status);
 
       if (!response.ok) {
         throw new Error('Failed to fetch online users');
       }
 
       const data = await response.json();
+      console.log('Fetched online users:', data);
       setOnlineUsers(data);
     } catch (err) {
       console.error('Error fetching online users:', err);

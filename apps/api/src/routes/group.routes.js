@@ -86,6 +86,12 @@ router.get('/search', authenticateToken, async (req, res) => {
 router.get('/online-users', authenticateToken, async (req, res) => {
   try {
     const onlineUserIds = getOnlineUsers();
+    console.log('Online user IDs:', onlineUserIds);
+
+    // Disable caching
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
 
     // Fetch user details for online users
     const users = await prisma.user.findMany({
@@ -101,6 +107,7 @@ router.get('/online-users', authenticateToken, async (req, res) => {
       },
     });
 
+    console.log('Returning online users:', users.length);
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
