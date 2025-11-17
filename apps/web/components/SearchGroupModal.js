@@ -346,6 +346,7 @@ export default function SearchGroupModal({ show, onClose, onJoinSuccess }) {
                         title={member.user.username}
                       >
                         {AVATARS[member.user.avatarId - 1] || '😊'}
+                        {member.user.username}
                       </span>
                     ))}
                     {group.members.length > 8 && (

@@ -11,6 +11,7 @@ export default function Home() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [groups, setGroups] = useState([]);
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -36,6 +37,11 @@ export default function Home() {
 
     fetchProfile();
     fetchGroups();
+    fetchOnlineUsers();
+
+    // Poll for online users every 10 seconds
+    const interval = setInterval(fetchOnlineUsers, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchProfile = async () => {
@@ -94,6 +100,31 @@ export default function Home() {
       setGroups(data);
     } catch (err) {
       console.error('Error fetching groups:', err);
+    }
+  };
+
+  const fetchOnlineUsers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        }/api/groups/online-users`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch online users');
+      }
+
+      const data = await response.json();
+      setOnlineUsers(data);
+    } catch (err) {
+      console.error('Error fetching online users:', err);
     }
   };
 
@@ -439,6 +470,113 @@ export default function Home() {
 
           {/* Conversations */}
           <div>
+            {/* Online Users Section */}
+            {onlineUsers.length > 0 && (
+              <div
+                style={{
+                  background:
+                    'linear-gradient(135deg, rgba(168, 184, 158, 0.15) 0%, rgba(139, 158, 131, 0.15) 100%)',
+                  borderRadius: '16px',
+                  boxShadow: '0 4px 12px rgba(139, 115, 85, 0.08)',
+                  padding: '1.5rem',
+                  marginBottom: '1.5rem',
+                  border: '1px solid rgba(168, 184, 158, 0.3)',
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: '1rem',
+                    fontWeight: 'bold',
+                    color: '#8B9E83',
+                    margin: 0,
+                    marginBottom: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      background: '#4ade80',
+                      boxShadow: '0 0 8px rgba(74, 222, 128, 0.6)',
+                      animation: 'pulse 2s ease-in-out infinite',
+                    }}
+                  ></span>
+                  <span>Online Now ({onlineUsers.length})</span>
+                </h3>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '0.75rem',
+                  }}
+                >
+                  {onlineUsers.map((onlineUser) => (
+                    <div
+                      key={onlineUser.id}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        background:
+                          'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        border: '1px solid rgba(168, 184, 158, 0.2)',
+                        boxShadow: '0 2px 6px rgba(139, 115, 85, 0.05)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          background:
+                            'linear-gradient(135deg, #A8B89E 0%, #8B9E83 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '1rem',
+                          position: 'relative',
+                        }}
+                      >
+                        {onlineUser.avatarId
+                          ? String.fromCodePoint(
+                              0x1f600 + (onlineUser.avatarId % 80)
+                            )
+                          : '👤'}
+                        <span
+                          style={{
+                            position: 'absolute',
+                            bottom: '-2px',
+                            right: '-2px',
+                            width: '10px',
+                            height: '10px',
+                            background: '#4ade80',
+                            border: '2px solid white',
+                            borderRadius: '50%',
+                          }}
+                        ></span>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: '0.875rem',
+                          fontWeight: '600',
+                          color: '#4A4A48',
+                        }}
+                      >
+                        {onlineUser.username}
+                        {onlineUser.id === user?.id && ' (You)'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div
               style={{
                 background:
@@ -694,6 +832,17 @@ export default function Home() {
           }
           50% {
             transform: translateY(-10px);
+          }
+        }
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.7;
+            transform: scale(1.1);
           }
         }
       `}</style>

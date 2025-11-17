@@ -1,6 +1,7 @@
 const express = require('express');
 const { PrismaClient, Prisma } = require('@prisma/client');
 const { authenticateToken } = require('../auth.middleware.js');
+const { getOnlineUsers } = require('../ws/handler.js');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -12,10 +13,23 @@ router.get('/', authenticateToken, async (req, res) => {
     const memberships = await prisma.groupMember.findMany({
       where: { userId: userId },
       include: {
-        group: true,
+        group: {
+          include: {
+            members: {
+              include: {
+                user: {
+                  select: { id: true, username: true, avatarId: true },
+                },
+              },
+            },
+          },
+        },
       },
     });
-    const groups = memberships.map((m) => m.group);
+    const groups = memberships.map((m) => ({
+      ...m.group,
+      membersList: m.group.members.map((member) => member.user),
+    }));
     res.json(groups);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -63,6 +77,31 @@ router.get('/search', authenticateToken, async (req, res) => {
     }));
 
     res.json(groupsWithMemberStatus);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /groups/online-users - Get list of currently connected users
+router.get('/online-users', authenticateToken, async (req, res) => {
+  try {
+    const onlineUserIds = getOnlineUsers();
+
+    // Fetch user details for online users
+    const users = await prisma.user.findMany({
+      where: {
+        id: {
+          in: onlineUserIds,
+        },
+      },
+      select: {
+        id: true,
+        username: true,
+        avatarId: true,
+      },
+    });
+
+    res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

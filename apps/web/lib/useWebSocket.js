@@ -5,11 +5,12 @@ import { useEffect, useRef, useState } from 'react';
  * @param {Object} config - Configuration object
  * @param {number} config.roomId - Room ID (group id)
  * @param {string} config.username - User's display name
+ * @param {number} config.userId - User's ID
  * @param {Function} config.onMessage - Callback when any message is received
  * @param {Function} config.onError - Callback when error occurs
  * @returns {Object} WebSocket state and controls
  */
-export function useWebSocket({ roomId, username, onMessage, onError }) {
+export function useWebSocket({ roomId, username, userId, onMessage, onError }) {
   const [connected, setConnected] = useState(false);
   const [messages, setMessages] = useState([]);
   const [members, setMembers] = useState([]);
@@ -54,7 +55,7 @@ export function useWebSocket({ roomId, username, onMessage, onError }) {
         console.log('✅ WebSocket connected');
         setConnected(true);
         setError(null);
-        socket.send(JSON.stringify({ type: 'join', roomId, username }));
+        socket.send(JSON.stringify({ type: 'join', roomId, username, userId }));
       });
 
       // listen to ws event
@@ -135,7 +136,7 @@ export function useWebSocket({ roomId, username, onMessage, onError }) {
         }
       }
     };
-  }, [roomId, username]); // ลบ onMessage, onError ออกจาก dependencies
+  }, [roomId, username, userId]); // ลบ onMessage, onError ออกจาก dependencies
 
   // Send a text message to the room
   const sendMessage = (text) => {

@@ -14,16 +14,33 @@ const {
 // Map to store WebSocket connections by clientId
 const wsConnections = new Map();
 
+// Map to store online users: userId -> Set of clientIds
+const onlineUsers = new Map();
+
 // Export wsConnections for use in routes
 function getWsConnections() {
   return wsConnections;
+}
+
+// Export function to get online users
+function getOnlineUsers() {
+  return Array.from(onlineUsers.keys());
 }
 
 async function handleMessage(ws, msg) {
   const { type } = msg;
 
   if (type === 'join') {
-    const { roomId, username } = msg;
+    const { roomId, username, userId } = msg;
+
+    // Track online user
+    if (userId) {
+      ws.userId = userId; // Store userId on WebSocket connection
+      if (!onlineUsers.has(userId)) {
+        onlineUsers.set(userId, new Set());
+      }
+      onlineUsers.get(userId).add(ws.clientId);
+    }
 
     // Check if this is a new join or a refresh
     // by checking if client is already in the room
@@ -129,6 +146,16 @@ function initializeWebSocket(server) {
     });
 
     ws.on('close', () => {
+      // Remove from online users tracking
+      if (ws.userId) {
+        const userClients = onlineUsers.get(ws.userId);
+        if (userClients) {
+          userClients.delete(clientId);
+          if (userClients.size === 0) {
+            onlineUsers.delete(ws.userId);
+          }
+        }
+      }
       // Remove client connection
       wsConnections.delete(clientId);
       console.log(`Client ${clientId} disconnected`);
@@ -151,4 +178,4 @@ function initializeWebSocket(server) {
   return wss;
 }
 
-module.exports = { initializeWebSocket, getWsConnections };
+module.exports = { initializeWebSocket, getWsConnections, getOnlineUsers };

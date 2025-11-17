@@ -47,6 +47,7 @@ export default function GroupChatMock() {
     useWebSocket({
       roomId: roomId ? parseInt(roomId, 10) : null,
       username,
+      userId: user?.id,
       onMessage: handleWebSocketMessage,
     });
 
