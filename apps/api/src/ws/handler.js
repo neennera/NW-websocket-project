@@ -27,23 +27,79 @@ function getOnlineUsers() {
   return Array.from(onlineUsers.keys());
 }
 
+// Broadcast online users update to all home-tracking clients
+function broadcastOnlineUsersUpdate() {
+  const onlineUserIds = getOnlineUsers();
+  console.log('📡 Broadcasting online users update:', onlineUserIds);
+
+  const updateMessage = JSON.stringify({
+    type: 'online_users_update',
+    userIds: onlineUserIds
+  });
+
+  let broadcastCount = 0;
+  // Send to all connected WebSocket clients
+  wsConnections.forEach((clientWs, clientId) => {
+    if (clientWs.readyState === 1) { // WebSocket.OPEN
+      try {
+        clientWs.send(updateMessage);
+        broadcastCount++;
+      } catch (err) {
+        console.error(`Failed to send online users update to ${clientId}:`, err);
+      }
+    }
+  });
+
+  console.log(`📡 Broadcasted online users update to ${broadcastCount} clients`);
+}
+
 async function handleMessage(ws, msg) {
   const { type } = msg;
+  console.log('📨 Received WebSocket message:', { type, ...msg });
 
   if (type === 'join') {
     const { roomId, username, userId } = msg;
+    console.log('🔗 Processing join request:', { roomId, username, userId, clientId: ws.clientId });
 
     // Track online user
     if (userId) {
-      ws.userId = userId; // Store userId on WebSocket connection
-      if (!onlineUsers.has(userId)) {
-        onlineUsers.set(userId, new Set());
+      // Ensure userId is an integer
+      const userIdInt = parseInt(userId, 10);
+      if (isNaN(userIdInt)) {
+        console.error('❌ Invalid userId provided:', userId);
+        ws.send(JSON.stringify({ type: 'error', message: 'Invalid userId' }));
+        return;
       }
-      onlineUsers.get(userId).add(ws.clientId);
+
+      ws.userId = userIdInt; // Store userId on WebSocket connection
+      if (!onlineUsers.has(userIdInt)) {
+        onlineUsers.set(userIdInt, new Set());
+      }
+      onlineUsers.get(userIdInt).add(ws.clientId);
       console.log(
-        `User ${userId} is now online. Total online users:`,
-        onlineUsers.size
+        `✅ User ${userIdInt} (${username}) is now online. Total online users:`,
+        onlineUsers.size,
+        'Current online user IDs:', Array.from(onlineUsers.keys())
       );
+
+      // Broadcast updated online users list
+      broadcastOnlineUsersUpdate();
+    } else {
+      console.warn('⚠️ Join message missing userId:', msg);
+    }
+
+    // Handle special tracking rooms (like home-tracking) - don't add to DB
+    if (roomId === 'home-tracking') {
+      ws.send(JSON.stringify({
+        type: 'joined',
+        roomId,
+        members: [],
+        history: []
+      }));
+
+      // Broadcast updated online users list to all home-tracking clients
+      broadcastOnlineUsersUpdate();
+      return;
     }
 
     // Check if this is a new join or a refresh
@@ -133,7 +189,8 @@ function initializeWebSocket(server) {
     // Store WebSocket connection
     wsConnections.set(clientId, ws);
 
-    console.log(`Client ${clientId} connected`);
+    console.log(`🔌 Client ${clientId} connected from ${req.socket.remoteAddress}`);
+    console.log(`📊 Current connections: ${wsConnections.size}, Online users: ${onlineUsers.size}`);
 
     ws.on('pong', () => {
       ws.isAlive = true;
@@ -150,6 +207,8 @@ function initializeWebSocket(server) {
     });
 
     ws.on('close', () => {
+      console.log(`🔌 Client ${clientId} disconnected`);
+
       // Remove from online users tracking
       if (ws.userId) {
         const userClients = onlineUsers.get(ws.userId);
@@ -158,15 +217,23 @@ function initializeWebSocket(server) {
           if (userClients.size === 0) {
             onlineUsers.delete(ws.userId);
             console.log(
-              `User ${ws.userId} went offline. Total online users:`,
-              onlineUsers.size
+              `❌ User ${ws.userId} went offline. Total online users:`,
+              onlineUsers.size,
+              'Remaining online user IDs:', Array.from(onlineUsers.keys())
+            );
+
+            // Broadcast updated online users list
+            broadcastOnlineUsersUpdate();
+          } else {
+            console.log(
+              `🔗 User ${ws.userId} still has ${userClients.size} other connections`
             );
           }
         }
       }
       // Remove client connection
       wsConnections.delete(clientId);
-      console.log(`Client ${clientId} disconnected`);
+      console.log(`📊 Current connections: ${wsConnections.size}, Online users: ${onlineUsers.size}`);
     });
 
     ws.on('error', (err) => {

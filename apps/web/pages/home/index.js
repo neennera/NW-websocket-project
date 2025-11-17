@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import ProfileCard from '../../components/ProfileCard';
 import CreateGroupModal from '../../components/CreateGroupModal';
@@ -14,6 +14,8 @@ export default function Home() {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [wsConnected, setWsConnected] = useState(false);
+  const wsRef = useRef(null);
 
   // Modal states
   const [showCreateGroup, setShowCreateGroup] = useState(false);
@@ -38,18 +40,178 @@ export default function Home() {
     fetchProfile();
     fetchGroups();
     fetchOnlineUsers();
-
-    // Poll for online users every 10 seconds
-    const interval = setInterval(fetchOnlineUsers, 10000);
-    return () => clearInterval(interval);
   }, []);
 
-  const fetchProfile = async () => {
+  // Create WebSocket connection after user profile is loaded
+  useEffect(() => {
+    if (!user || !user.id) {
+      console.log('⏳ Waiting for user profile to load before WebSocket connection...');
+      return;
+    }
+
+    console.log('✅ User profile loaded, creating WebSocket connection for user:', user);
+
+    // Create WebSocket connection for online tracking
+    const connectWebSocket = () => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        console.log('🔄 WebSocket already connected, skipping...');
+        return;
+      }
+
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const wsUrl = backendUrl.replace('http', 'ws') + '/ws';
+
+      try {
+        const socket = new WebSocket(wsUrl);
+        wsRef.current = socket;
+
+        socket.addEventListener('open', () => {
+          console.log('🌐 Home WebSocket connected for online tracking');
+          setWsConnected(true);
+          // Send join message with proper user data
+          socket.send(JSON.stringify({
+            type: 'join',
+            roomId: 'home-tracking',
+            username: user.username,
+            userId: user.id  // Use the actual user ID from state
+          }));
+          console.log('📤 Sent join message with userId:', user.id, 'username:', user.username);
+
+          // Immediately fetch current online users when connected
+          setTimeout(() => {
+            console.log('🔄 Fetching initial online users after connection...');
+            fetchOnlineUsers();
+          }, 500);
+        });
+
+        socket.addEventListener('close', () => {
+          console.log('🌐 Home WebSocket disconnected');
+          setWsConnected(false);
+          // Reconnect after 3 seconds
+          setTimeout(connectWebSocket, 3000);
+        });
+
+        socket.addEventListener('message', async (event) => {
+          try {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'online_users_update') {
+              console.log('📥 Received online users update:', data.userIds);
+              // Fetch user details for the online user IDs
+              await fetchOnlineUsersFromIds(data.userIds);
+            } else if (data.type === 'joined') {
+              console.log('📥 Joined home-tracking room successfully');
+              // Immediately fetch current online users when we join
+              setTimeout(() => {
+                console.log('🔄 Force refreshing online users after join confirmation...');
+                fetchOnlineUsers();
+              }, 200);
+            }
+          } catch (err) {
+            console.error('❌ Error handling WebSocket message:', err);
+          }
+        });
+
+        socket.addEventListener('error', (err) => {
+          console.error('❌ Home WebSocket error:', err);
+          setWsConnected(false);
+        });
+      } catch (err) {
+        console.error('❌ Failed to create Home WebSocket:', err);
+      }
+    };
+
+    connectWebSocket();
+
+    // Poll for online users every 30 seconds (reduced frequency since we have real-time updates)
+    const interval = setInterval(fetchOnlineUsers, 30000);
+
+    return () => {
+      clearInterval(interval);
+      if (wsRef.current) {
+        console.log('🔌 Closing Home WebSocket');
+        if (wsRef.current.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify({
+            type: 'leave',
+            roomId: 'home-tracking'
+          }));
+        }
+        wsRef.current.close();
+      }
+    };
+  }, [user]); // Depend on user state
+
+  // Fetch user details from online user IDs
+  const fetchOnlineUsersFromIds = async (userIds) => {
+    try {
+      const token = localStorage.getItem('token');
+
+      console.log('🔄 Fetching user details for IDs:', userIds);
+
+      if (!userIds || userIds.length === 0) {
+        console.log('🔄 No user IDs provided, clearing online users');
+        setOnlineUsers([]);
+        return;
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'}/api/groups/online-users-by-ids`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            'Cache-Control': 'no-cache',
+            Pragma: 'no-cache',
+          },
+          body: JSON.stringify({ userIds })
+        }
+      );
+
+      console.log('📡 API Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        url: response.url
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('❌ API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+
+        if (response.status === 0 || response.status >= 500) {
+          console.warn('⚠️ Backend server appears to be down, falling back...');
+          await fetchOnlineUsers();
+          return;
+        }
+
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Successfully fetched online users by IDs:', data);
+      setOnlineUsers(data);
+    } catch (err) {
+      console.error('❌ Error fetching online users by IDs:', err);
+
+      // Check if it's a network error (backend down)
+      if (err.message.includes('fetch') || err.name === 'TypeError') {
+        console.warn('⚠️ Network error - trying fallback...');
+      }
+
+      // Fallback to regular fetch
+      console.log('🔄 Falling back to regular fetch...');
+      await fetchOnlineUsers();
+    }
+  }; const fetchProfile = async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
         }/api/profile/me`,
         {
           headers: {
@@ -67,7 +229,12 @@ export default function Home() {
         ...data,
         avatar_id: data.avatar_id || data.avatarId || 1,
       };
+
+      console.log('👤 User profile loaded:', normalizedUser);
       setUser(normalizedUser);
+
+      // Update localStorage with current user data
+      localStorage.setItem('user', JSON.stringify(normalizedUser));
     } catch (err) {
       setError(err.message);
       if (err.message.includes('401')) {
@@ -82,8 +249,7 @@ export default function Home() {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
         }/api/groups`,
         {
           headers: {
@@ -106,39 +272,63 @@ export default function Home() {
   const fetchOnlineUsers = async () => {
     try {
       const token = localStorage.getItem('token');
+      console.log('🔄 Fetching online users via polling...');
+
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
         }/api/groups/online-users?t=${Date.now()}`,
         {
+          method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
             'Cache-Control': 'no-cache',
             Pragma: 'no-cache',
           },
         }
       );
 
-      console.log('Online users response status:', response.status);
+      console.log('📡 Online users polling response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        url: response.url
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch online users');
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('❌ Polling API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+
+        if (response.status === 0 || response.status >= 500) {
+          console.warn('⚠️ Backend server appears to be down');
+          setOnlineUsers([]); // Clear online users if server is down
+          return;
+        }
+
+        throw new Error(`API Error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('Fetched online users:', data);
+      console.log('✅ Polling fetched online users:', data);
       setOnlineUsers(data);
     } catch (err) {
-      console.error('Error fetching online users:', err);
-    }
-  };
+      console.error('❌ Error fetching online users via polling:', err);
 
-  const handleAvatarUpdate = async (avatarId) => {
+      // Check if it's a network error (backend down)
+      if (err.message.includes('fetch') || err.name === 'TypeError') {
+        console.warn('⚠️ Network error - backend server may be down');
+        setOnlineUsers([]);
+      }
+    }
+  }; const handleAvatarUpdate = async (avatarId) => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
         }/api/profile/me`,
         {
           method: 'PUT',
@@ -197,8 +387,7 @@ export default function Home() {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
         }/api/groups`,
         {
           method: 'POST',
@@ -241,8 +430,7 @@ export default function Home() {
         : `username=${encodeURIComponent(searchText.trim())}`;
 
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
         }/api/profile/search?${searchParam}`,
         {
           headers: {
@@ -268,8 +456,7 @@ export default function Home() {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
         }/api/groups/dm`,
         {
           method: 'POST',
@@ -310,8 +497,7 @@ export default function Home() {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
         }/api/groups/${selectedGroup.id}/members`,
         {
           method: 'POST',
@@ -476,42 +662,92 @@ export default function Home() {
           {/* Conversations */}
           <div>
             {/* Online Users Section */}
-            {onlineUsers.length > 0 && (
-              <div
+            <div
+              style={{
+                background:
+                  'linear-gradient(135deg, rgba(168, 184, 158, 0.15) 0%, rgba(139, 158, 131, 0.15) 100%)',
+                borderRadius: '16px',
+                boxShadow: '0 4px 12px rgba(139, 115, 85, 0.08)',
+                padding: '1.5rem',
+                marginBottom: '1.5rem',
+                border: '1px solid rgba(168, 184, 158, 0.3)',
+              }}
+            >
+              <h3
                 style={{
-                  background:
-                    'linear-gradient(135deg, rgba(168, 184, 158, 0.15) 0%, rgba(139, 158, 131, 0.15) 100%)',
-                  borderRadius: '16px',
-                  boxShadow: '0 4px 12px rgba(139, 115, 85, 0.08)',
-                  padding: '1.5rem',
-                  marginBottom: '1.5rem',
-                  border: '1px solid rgba(168, 184, 158, 0.3)',
+                  fontSize: '1rem',
+                  fontWeight: 'bold',
+                  color: '#8B9E83',
+                  margin: 0,
+                  marginBottom: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
                 }}
               >
-                <h3
+                <span
                   style={{
-                    fontSize: '1rem',
-                    fontWeight: 'bold',
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    background: wsConnected ? '#4ade80' : '#ef4444',
+                    boxShadow: wsConnected
+                      ? '0 0 8px rgba(74, 222, 128, 0.6)'
+                      : '0 0 8px rgba(239, 68, 68, 0.6)',
+                    animation: 'pulse 2s ease-in-out infinite',
+                  }}
+                ></span>
+                <span>Online Now ({onlineUsers.length})</span>
+                {!wsConnected && (
+                  <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 'normal' }}>
+                    (Reconnecting...)
+                  </span>
+                )}
+                <button
+                  onClick={() => {
+                    console.log('🔄 Manual refresh online users clicked');
+                    fetchOnlineUsers();
+                  }}
+                  style={{
+                    marginLeft: 'auto',
+                    padding: '0.25rem 0.5rem',
+                    fontSize: '0.75rem',
+                    background: 'transparent',
+                    border: '1px solid #8B9E83',
+                    borderRadius: '6px',
                     color: '#8B9E83',
-                    margin: 0,
-                    marginBottom: '1rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#8B9E83';
+                    e.target.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = 'transparent';
+                    e.target.style.color = '#8B9E83';
                   }}
                 >
-                  <span
-                    style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      background: '#4ade80',
-                      boxShadow: '0 0 8px rgba(74, 222, 128, 0.6)',
-                      animation: 'pulse 2s ease-in-out infinite',
-                    }}
-                  ></span>
-                  <span>Online Now ({onlineUsers.length})</span>
-                </h3>
+                  🔄 Refresh
+                </button>
+              </h3>
+
+              {onlineUsers.length === 0 ? (
+                <div
+                  style={{
+                    padding: '1rem',
+                    textAlign: 'center',
+                    color: '#8B9E83',
+                    fontSize: '0.875rem',
+                    fontStyle: 'italic'
+                  }}
+                >
+                  {wsConnected
+                    ? '👻 No one is online right now (or server is starting up)'
+                    : '🔄 Connecting to see who\'s online... (check if backend is running)'
+                  }
+                </div>
+              ) : (
                 <div
                   style={{
                     display: 'flex',
@@ -550,8 +786,8 @@ export default function Home() {
                       >
                         {onlineUser.avatarId
                           ? String.fromCodePoint(
-                              0x1f600 + (onlineUser.avatarId % 80)
-                            )
+                            0x1f600 + (onlineUser.avatarId % 80)
+                          )
                           : '👤'}
                         <span
                           style={{
@@ -579,8 +815,8 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             <div
               style={{

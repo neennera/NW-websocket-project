@@ -16,27 +16,36 @@ const app = express();
 // Support multiple origins for production and development
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:3000'];
+  : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+
+console.log('🌍 CORS allowed origins:', ALLOWED_ORIGINS);
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
+  console.log('🔍 CORS check - Request origin:', origin);
+
   // Check if the origin is in the allowed list
   if (ALLOWED_ORIGINS.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
+    console.log('✅ CORS allowed for origin:', origin);
   } else if (ALLOWED_ORIGINS.includes('*')) {
     res.header('Access-Control-Allow-Origin', '*');
+    console.log('✅ CORS allowed for all origins');
+  } else {
+    console.log('❌ CORS blocked for origin:', origin);
   }
 
   res.header(
     'Access-Control-Allow-Methods',
     'GET, POST, PUT, DELETE, PATCH, OPTIONS'
   );
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cache-Control, Pragma');
   res.header('Access-Control-Allow-Credentials', 'true');
 
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('✅ CORS preflight request handled');
     return res.sendStatus(200);
   }
 

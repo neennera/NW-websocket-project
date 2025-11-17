@@ -86,7 +86,7 @@ router.get('/search', authenticateToken, async (req, res) => {
 router.get('/online-users', authenticateToken, async (req, res) => {
   try {
     const onlineUserIds = getOnlineUsers();
-    console.log('Online user IDs:', onlineUserIds);
+    console.log('🔍 GET /online-users - Online user IDs from WebSocket:', onlineUserIds);
 
     // Disable caching
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -107,9 +107,48 @@ router.get('/online-users', authenticateToken, async (req, res) => {
       },
     });
 
-    console.log('Returning online users:', users.length);
+    console.log('🔍 GET /online-users - Returning users:', users);
     res.json(users);
   } catch (error) {
+    console.error('❌ Error in GET /online-users:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /groups/online-users-by-ids - Get user details for specific user IDs
+router.post('/online-users-by-ids', authenticateToken, async (req, res) => {
+  try {
+    const { userIds } = req.body;
+    console.log('🔍 POST /online-users-by-ids - Received userIds:', userIds);
+
+    if (!userIds || !Array.isArray(userIds)) {
+      console.error('❌ POST /online-users-by-ids - Invalid userIds:', userIds);
+      return res.status(400).json({ error: 'userIds array is required' });
+    }
+
+    // Disable caching
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
+    // Fetch user details for provided user IDs
+    const users = await prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        username: true,
+        avatarId: true,
+      },
+    });
+
+    console.log('🔍 POST /online-users-by-ids - Returning users:', users);
+    res.json(users);
+  } catch (error) {
+    console.error('❌ Error in POST /online-users-by-ids:', error);
     res.status(500).json({ error: error.message });
   }
 });
